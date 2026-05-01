@@ -1,5 +1,7 @@
 # 🛰️ mac-storage-scout
 
+![mac-storage-scout cover](./assets/github-cover.png)
+
 > ⚡ Fast, readable, action-oriented disk explorer for macOS terminal.
 >
 > Find what eats your disk, decide safely, clean confidently.
