@@ -198,4 +198,12 @@ After capturing results, update `spec/mac-storage-scout.macos-performance.refere
 - canonical_log: self (this task file)
 
 ## EXEC_TIMELINE
-_(append entries as work proceeds)_
+- 2026-05-01T17:00:00Z: started from fresh `master` per MASTER_SYNC_PROTOCOL; created branch `ai/tsk-09-perf-benchmarks`.
+- 2026-05-01T17:05:00Z: committed governance changes — AGENTS.md checkpoint 0 (branch context check), CLAUDE.md bootstrap step 1, task-09 spec.
+- 2026-05-01T17:10:00Z: wrote `mss_walker_bench_test.go` — 6 benchmark functions covering baseline + worker tuning + stdlib comparisons; MSS_BENCH_ROOT env override for real trees.
+- 2026-05-01T17:15:00Z: added DAG (section 9) and DAG update policy to spec/mac-storage-scout.spec.md; added DOCUMENTATION_SYNC_RULES to AGENTS.md requiring DAG + Decision Summary updates on new tasks; added D-009.
+- 2026-05-01T17:25:00Z: ran benchmarks on os.TempDir (small tree, 5s/bench); all 6 strategies pass; WalkerCurrent 1.4x faster than WalkDir, 2x faster than Walk.
+- 2026-05-01T17:40:00Z: ran benchmarks on ~/Developer (476k entries, 33GB, 1x pass); WalkerCurrent 16.0s vs WalkDir 29.2s (+83% slower) vs Walk 69.2s (+333% slower); NumCPU×2 optimal (NumCPU 33% slower on real tree).
+- 2026-05-01T17:45:00Z: captured CPU profile (pprof); hotspot: 89.85% syscall.syscall, 74.65% os.Lstat — engine is fully syscall-bound; no Go-level hotspot exists.
+- 2026-05-01T17:50:00Z: verified runtime correctness — `go test ./...` PASS, `go build` PASS, `mss-contract-lint` violations=0; real scan on macos-core profile confirmed output format intact.
+- 2026-05-01T17:55:00Z: saved evidence: benchmark-baseline.txt, pprof-cpu-profile.txt, runtime-scan-proof.txt; updated spec/mac-storage-scout.macos-performance.reference.md with Measured Results section.

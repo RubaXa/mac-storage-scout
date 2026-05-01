@@ -1,0 +1,53 @@
+# mac-storage-scout Walker Benchmark Results
+# Task: TSK-09
+# Date: 2026-05-01
+# Machine: Apple M3 Pro, arm64, darwin, 12 logical CPUs
+# Go: 1.22
+#
+# Run 1: os.TempDir() (~small tree, measures per-call overhead)
+# Command: go test -run='^$' -bench=. -benchtime=5s -benchmem ./internal/mss/adapters/fs/
+
+goos: darwin
+goarch: arm64
+pkg: mac-storage-scout/internal/mss/adapters/fs
+cpu: Apple M3 Pro
+BenchmarkWalkerCurrent-12            	    1000	   5526504 ns/op	 3887430 B/op	   14233 allocs/op
+BenchmarkWalkerWorkersCPU-12         	    1173	   5531144 ns/op	 3884629 B/op	   14217 allocs/op
+BenchmarkWalkerWorkersCPUx4-12       	     979	   5822875 ns/op	 3892476 B/op	   14262 allocs/op
+BenchmarkWalkerWorkers1-12           	     502	  12627737 ns/op	 3882071 B/op	   14202 allocs/op
+BenchmarkWalkerFilepathWalkDir-12    	     811	   7909758 ns/op	  969265 B/op	    8089 allocs/op
+BenchmarkWalkerFilepathWalk-12       	     531	  11358979 ns/op	 1383017 B/op	    9714 allocs/op
+PASS
+ok  	mac-storage-scout/internal/mss/adapters/fs	41.907s
+
+# -----------------------------------------------------------------------
+# Run 2: MSS_BENCH_ROOT=$HOME/Developer (real tree, 476k entries, 33GB)
+# Command: MSS_BENCH_ROOT=$HOME/Developer go test -run='^$' \
+#   -bench='BenchmarkWalkerCurrent|BenchmarkWalkerWorkersCPU$|BenchmarkWalkerWorkers1|BenchmarkWalkerFilepathWalkDir|BenchmarkWalkerFilepathWalk' \
+#   -benchtime=1x -benchmem ./internal/mss/adapters/fs/
+
+goos: darwin
+goarch: arm64
+pkg: mac-storage-scout/internal/mss/adapters/fs
+cpu: Apple M3 Pro
+BenchmarkWalkerCurrent-12          1   16014765292 ns/op   2089010240 B/op   18056847 allocs/op
+BenchmarkWalkerWorkersCPU-12       1   21350895167 ns/op   2088831888 B/op   18056587 allocs/op
+BenchmarkWalkerWorkers1-12         1  139054497250 ns/op   2088823920 B/op   18056550 allocs/op
+BenchmarkWalkerFilepathWalkDir-12  1   29240572458 ns/op    901296344 B/op    9178705 allocs/op
+BenchmarkWalkerFilepathWalk-12     1   69231682834 ns/op   1489964952 B/op   11466411 allocs/op
+
+# Per-entry metrics (476319 entries):
+#   WalkerCurrent:    33.6 µs/entry
+#   WalkerFilepathWalkDir: 61.4 µs/entry  (+83% vs baseline)
+#   WalkerFilepathWalk:   145.3 µs/entry  (+333% vs baseline)
+#   WalkerWorkers1:       292.0 µs/entry  (+769% vs baseline)
+
+# -----------------------------------------------------------------------
+# Run 3: CPU Profile (MSS_BENCH_ROOT=$HOME/Developer, BenchmarkWalkerCurrent, benchtime=1x)
+# See: spec/evidence/pprof-cpu-profile.txt
+# Top findings:
+#   89.85% syscall.syscall       — fully syscall-bound
+#   74.65% os.Lstat              — dominant: one Lstat per dir + one per file (via de.Info)
+#   22.86% os.ReadDir            — directory listing
+#   12.10% os.openDir            — directory open
+# Conclusion: no algorithmic optimization possible without reducing syscall count.

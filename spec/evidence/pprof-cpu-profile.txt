@@ -1,0 +1,30 @@
+File: fs.test
+Type: cpu
+Time: May 1, 2026 at 8:37pm (MSK)
+Duration: 16.33s, Total samples = 62.24s (381.16%)
+Showing nodes accounting for 61.02s, 98.04% of 62.24s total
+Dropped 133 nodes (cum <= 0.31s)
+      flat  flat%   sum%        cum   cum%
+     0.01s 0.016% 0.016%     60.84s 97.75%  mac-storage-scout/internal/mss/adapters/fs.(*MssGoFsWalkerAdapter).Walk.func2
+         0     0% 0.016%     60.83s 97.73%  mac-storage-scout/internal/mss/adapters/fs.(*MssGoFsWalkerAdapter).walkPath
+    55.92s 89.85% 89.86%     55.96s 89.91%  syscall.syscall
+         0     0% 89.86%     53.93s 86.65%  os.ignoringEINTR (inline)
+         0     0% 89.86%     46.46s 74.65%  os.Lstat
+         0     0% 89.86%     46.45s 74.63%  os.lstatNolog
+         0     0% 89.86%     46.41s 74.57%  os.lstatNolog.func1 (inline)
+         0     0% 89.86%     46.41s 74.57%  syscall.Lstat
+         0     0% 89.86%     39.67s 63.74%  os.(*unixDirent).Info
+         0     0% 89.86%     14.23s 22.86%  os.ReadDir
+         0     0% 89.86%      7.53s 12.10%  os.openDir
+         0     0% 89.86%      7.53s 12.10%  os.openDirNolog
+         0     0% 89.86%      7.52s 12.08%  os.open (inline)
+         0     0% 89.86%      7.52s 12.08%  os.openDirNolog.func1
+         0     0% 89.86%      7.52s 12.08%  syscall.Open
+         0     0% 89.86%      5.65s  9.08%  os.(*File).ReadDir
+         0     0% 89.86%      5.65s  9.08%  os.(*File).readdir
+         0     0% 89.86%      4.56s  7.33%  internal/poll.(*FD).OpenDir
+         0     0% 89.86%      4.21s  6.76%  syscall.fdopendir
+     4.21s  6.76% 96.63%      4.21s  6.76%  syscall.syscallPtr
+         0     0% 96.63%      1.05s  1.69%  syscall.readdir_r
+         0     0% 96.63%      0.99s  1.59%  os.(*File).Close
+         0     0% 96.63%      0.99s  1.59%  os.(*file).close

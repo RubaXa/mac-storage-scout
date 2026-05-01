@@ -89,6 +89,10 @@ When behavior/UX/CLI changes:
 - update matching spec file(s)
 - append/update Execution Log in affected `spec/tasks/*.md` with UTC timestamp
 
+When a new task spec is created (`spec/tasks/mac-storage-scout.task-NN.md`):
+- add the task to the Execution Order DAG in `spec/mac-storage-scout.spec.md` (section 9) before opening a PR
+- add a D-NNN entry to the Decision Summary in `spec/mac-storage-scout.spec.md` (section 8) summarizing the key decision this task encodes
+
 ## GIT_FLOW_POLICY
 - direct commits to `master`: forbidden
 - required branch naming: `ai/<name>`

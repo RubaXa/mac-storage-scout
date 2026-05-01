@@ -311,6 +311,29 @@ mac-storage-scout/
 - `internal/mss/adapters/report/*.go`: final ASCII tree output formatter.
 
 
+## 9. Execution Order (Task DAG)
+
+Purpose: define task dependency graph so agents always know which tasks must land before starting a new one.
+Update this section every time a new task spec is created.
+
+```
+TSK-01 (CLI scaffold)
+  └─ TSK-02 (walker)
+       └─ TSK-03 (threshold contract)
+            └─ TSK-04 (other block: top-N, rest, types)
+                 └─ TSK-05 (orchestrator + delete)
+                      ├─ TSK-06 (ai rules + contract lint)
+                      │    └─ TSK-07 (rename to mac-storage-scout)
+                      │         └─ TSK-08 (master sync protocol)
+                      │              └─ TSK-09 (perf benchmark suite)  ← current
+                      └─ (future TSK-10+: optimizations from TSK-09 findings)
+```
+
+### DAG Update Policy
+- When creating a new task spec, **always** add it to this DAG before opening a PR.
+- Record all direct dependencies; do not assume order from task numbers alone.
+- If a task has no dependencies, place it at the root level.
+
 ## 8. Decision Summary (Root-Level)
 
 Purpose: store concise cross-task lessons here; keep detailed chronology inside each task spec (`spec/tasks/*.md`, section `Execution Log (AI-to-AI)`).
@@ -332,6 +355,8 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - implemented_in: `TSK-07`
 - D-008: Three-checkpoint master sync protocol is mandatory — sync before branching, before opening a PR, and after merge — with proactive return-to-master offer to the user.
   - implemented_in: `TSK-08`
+- D-009: Branch context check (checkpoint 0) — agent must run `git branch --show-current` before any task and ask the user if not on `master`; performance benchmark suite establishes measured baseline and optimization candidate matrix for the walker engine.
+  - implemented_in: `TSK-09`
 
 ### Invalid / Reverted Decisions
 - R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.
