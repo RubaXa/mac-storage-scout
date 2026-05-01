@@ -3,10 +3,10 @@
 ## DOC_META
 - doc_id: AGENTS
 - doc_type: ai_to_ai_operating_contract
-- version: 1.1.0
+- version: 1.2.0
 - status: active
 - repo: mac-storage-scout
-- updated_utc: 2026-05-01T14:19:39Z
+- updated_utc: 2026-05-01T15:00:00Z
 
 ## EXECUTION_INTENT
 Enable deterministic autonomous work on this repository with minimal ambiguity.
@@ -99,6 +99,13 @@ When behavior/UX/CLI changes:
 
 ### MASTER_SYNC_PROTOCOL (mandatory)
 The agent MUST sync with `origin/master` at three checkpoints. Skipping any of them is a process violation.
+
+0. **Branch context check** — before any work, run `git branch --show-current` and inspect the result:
+   - If the result is `master`: proceed to checkpoint 1 below.
+   - If the result is any other branch: **stop and ask the user**:
+     > "You are currently on branch `<name>`, not `master`. Recommended: switch to `master` and start fresh. Do you want to (a) switch to `master` first, or (b) continue on this branch?"
+   - Only proceed without switching if the user explicitly confirms option (b).
+   - Rationale: silently starting or continuing work on a stale feature branch risks divergence, id collisions, and wasted effort.
 
 1. **Before starting any task** — fetch and fast-forward `master`, then branch off:
    ```bash
