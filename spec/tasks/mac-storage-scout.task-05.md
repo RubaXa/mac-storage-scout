@@ -11,7 +11,7 @@
 - **Deferred Runtime Scope**: Snapshot/purgeable/APFS-clone exact attribution remains deferred.
 - **Target Files**:
   - `internal/mss/app/mss_scan_orchestrator.go` (Create)
-  - `cmd/mss/main.go` (Update)
+  - `cmd/mac-storage-scout/main.go` (Update)
   - `README.md` (Create)
 - **Target Test Files**:
   - `internal/mss/app/mss_scan_orchestrator_test.go` (Create)
@@ -43,8 +43,8 @@
 - **Test Levels**: `unit`, `integration`
 - **Verification Commands**:
   - `go test ./...`
-  - `go build ./cmd/mss`
-  - `./mss scan --threshold 500MB --profile macos-core --no-progress`
+  - `go build ./cmd/mac-storage-scout`
+  - `./mac-storage-scout scan --threshold 500MB --profile macos-core --no-progress`
 - **Completion Rule**:
   - All tests pass.
   - Binary builds.
@@ -70,7 +70,7 @@
 - 2026-05-01T15:50:00Z: integration wiring validated
 - 2026-05-01T16:05:00Z: repository initialized and pushed to GitHub
 - 2026-05-01T16:03:00Z: verification `go test ./...` -> PASS
-- 2026-05-01T16:03:00Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
+- 2026-05-01T16:03:00Z: verification `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` -> PASS
 - 2026-05-01T16:03:00Z: verification runtime scan -> PASS
 - 2026-05-01T13:54:55Z: validated `--top >= 1` and hardened delete guard against protected descendants/aliases
 

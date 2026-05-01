@@ -24,7 +24,7 @@ import (
 // main dispatches CLI subcommands.
 //
 // @purpose Route process execution to scan/delete command handlers.
-// @consumer End users invoking mss binary.
+// @consumer End users invoking mac-storage-scout binary.
 func main() {
 	if len(os.Args) < 2 {
 		printUsage()
@@ -45,17 +45,17 @@ func main() {
 // printUsage prints command help text.
 //
 // @purpose Describe available CLI commands and flags.
-// @consumer End users invoking mss binary.
+// @consumer End users invoking mac-storage-scout binary.
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "usage:")
-	fmt.Fprintln(os.Stderr, "  mss scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [--plain] [paths...]")
-	fmt.Fprintln(os.Stderr, "  mss delete [--dry-run] [--yes] <path> [path...]")
+	fmt.Fprintln(os.Stderr, "  mac-storage-scout scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [--plain] [paths...]")
+	fmt.Fprintln(os.Stderr, "  mac-storage-scout delete [--dry-run] [--yes] <path> [path...]")
 }
 
 // runScan executes scan command flow.
 //
 // @purpose Parse scan flags and run scan pipeline.
-// @consumer End users invoking mss scan.
+// @consumer End users invoking mac-storage-scout scan.
 // @param args Raw scan subcommand args.
 func runScan(args []string) {
 	// START_PARSE_SCAN_FLAGS
@@ -143,7 +143,7 @@ func runScan(args []string) {
 // runDelete executes delete command flow.
 //
 // @purpose Parse delete flags and run guarded delete workflow.
-// @consumer End users invoking mss delete.
+// @consumer End users invoking mac-storage-scout delete.
 // @param args Raw delete subcommand args.
 func runDelete(args []string) {
 	// START_PARSE_DELETE_FLAGS

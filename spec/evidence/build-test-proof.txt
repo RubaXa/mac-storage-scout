@@ -1,11 +1,8 @@
-2026-05-01T11:28:09Z
-?   	mac-storage-scout/cmd/mss	[no test files]
 ?   	mac-storage-scout/internal/mss/adapters/fs	[no test files]
 ?   	mac-storage-scout/internal/mss/adapters/progress	[no test files]
 ?   	mac-storage-scout/internal/mss/app	[no test files]
 ?   	mac-storage-scout/internal/mss/ports	[no test files]
-ok  	mac-storage-scout/internal/mss/adapters/aggregate	(cached)
-ok  	mac-storage-scout/internal/mss/adapters/report	(cached)
-ok  	mac-storage-scout/internal/mss/domain	(cached)
----
-build_exit=0
+ok  	mac-storage-scout/cmd/mac-storage-scout	1.049s
+ok  	mac-storage-scout/internal/mss/adapters/aggregate	0.753s
+ok  	mac-storage-scout/internal/mss/adapters/report	0.913s
+ok  	mac-storage-scout/internal/mss/domain	1.276s

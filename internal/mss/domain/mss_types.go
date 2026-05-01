@@ -7,7 +7,7 @@ import "time"
 // MssSizeMode defines how file size is accounted during scans.
 //
 // @purpose Declare supported file-size accounting modes.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 type MssSizeMode string
 
 const (
@@ -20,7 +20,7 @@ const (
 // MssScanConfig defines scan execution parameters.
 //
 // @purpose Carry scan runtime parameters across adapters.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 type MssScanConfig struct {
 	Paths          []string
 	ThresholdBytes int64

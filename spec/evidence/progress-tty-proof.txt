@@ -1,5 +1,5 @@
 Captured from real TTY run on 2026-05-01 (command interrupted manually with Ctrl+C):
-command: ./bin/mss scan --threshold 2GB --top 3 --workers 1 /Users/k.lebedev/Developer
+command: ./bin/mac-storage-scout scan --threshold 2GB --top 3 --workers 1 /Users/k.lebedev/Developer
 
 scanned: dirs=300 files=3146 bytes=342MB errors=0 elapsed=0s
 scanned: dirs=708 files=4836 bytes=538MB errors=0 elapsed=0s

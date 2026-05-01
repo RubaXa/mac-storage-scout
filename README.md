@@ -1,7 +1,7 @@
 # 🛰️ mac-storage-scout
 
 > ⚡ Fast, readable, action-oriented disk explorer for macOS terminal.
->  
+>
 > Find what eats your disk, decide safely, clean confidently.
 
 ```text
@@ -12,107 +12,99 @@
 |_|  |_||____/ |____/
 ```
 
-## ✨ Why It Exists
-- 📉 Shows where disk space is actually consumed.
-- 🧭 Uses one consistent detail model: big items explicit, small items aggregated.
-- 🛡️ Supports safe cleanup flow with `dry-run` and guarded delete.
-- 🧪 Built for real, noisy live systems (permissions/race errors tolerated).
+## 🎬 See It In Action
 
-## 📦 Binary
-- `bin/mss`
+```bash
+mac-storage-scout scan --threshold 200MB --top 5 "$HOME/Library/Caches"
+```
+
+```text
+┌─ 🛰️  mac-storage-scout
+│  🎚️  threshold: 200MB | 🔝 top: 5 | 📐 size-mode: logical
+└─ 🧭 sections: 1
+
+📂 [~/Library/Caches] 6.4GB
+├─ 📁 com.example.Browser ............................. 2.1GB
+├─ 📁 com.example.IDE ................................. 1.4GB
+├─ 📁 Homebrew ........................................ 612MB
+└─ 📦 other (<200MB each, 134 items) .................. 2.3GB
+   ├─ 🔝 top-5:
+   │  ├─ 📌 pip ....................................... 184MB
+   │  ├─ 📌 go-build .................................. 171MB
+   │  ├─ 📌 npm ....................................... 156MB
+   │  ├─ 📌 yarn ...................................... 142MB
+   │  └─ 📌 deno ...................................... 128MB
+   ├─ 🧩 rest (129 items) ............................. 1.5GB
+   └─ 🧪 types:
+      └─ 🏷️  rest types................................ 2.3GB (47821 files)
+```
+
+Big stuff is explicit. Small stuff is grouped. One glance — you know where the gigabytes live.
+
+## ✨ Why It Exists
+- 📉 Shows where disk space is **actually** consumed — not 80,000 tiny files.
+- 🧭 One consistent detail model: big items explicit, small items aggregated into `other` (with `top-N`, `rest`, `types`).
+- 🛡️ Safe cleanup flow — `--dry-run` first, `--yes` to commit, protected roots refused.
+- 🧪 Built for real, noisy live systems — permission errors and races are tolerated, not fatal.
+- 🎨 Emoji mode for humans, `--plain` mode for pipes and CI.
 
 ## 🚀 Quick Start
 ```bash
-# scan selected roots
-./bin/mss scan --profile macos-core --threshold 500MB --top 5
+# build (single static binary, no runtime deps)
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
-# scan custom path
-./bin/mss scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
+# scan key macOS roots
+./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5
 
-# use allocated blocks instead of logical file size
-./bin/mss scan --size-mode allocated --threshold 500MB --top 5 --profile macos-core
+# scan a custom path
+./bin/mac-storage-scout scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
 
-# force ASCII/plain output (no emoji icons)
-./bin/mss scan --profile macos-core --threshold 500MB --top 5 --plain
+# allocated blocks instead of logical size
+./bin/mac-storage-scout scan --size-mode allocated --threshold 500MB --profile macos-core
 
-# delete workflow
-./bin/mss delete --dry-run <path> [path...]
-./bin/mss delete --yes <path> [path...]
+# plain ASCII output (no emoji)
+./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5 --plain
+
+# safe delete flow
+./bin/mac-storage-scout delete --dry-run <path> [path...]
+./bin/mac-storage-scout delete --yes     <path> [path...]
 ```
 
-## 🎯 Output Contract (Short)
+## 🛡️ Safety Model for Delete
+- Requires `--yes` for actual delete; `--dry-run` previews without touching the filesystem.
+- Refuses dangerous roots: `/`, `/System`, `/usr`, `/bin`, `/sbin`, `/private/var/vm`.
+- Intended for user caches, logs, and app data cleanup — not system surgery.
+
+## 🎯 Output Contract
 For each folder section:
 - Items `>= threshold` are printed explicitly.
 - Items `< threshold` are grouped into `other`.
 - `--top` must be `>= 1`.
-- Each `other` uses one identical structure:
-  - `top-N`
-  - `rest`
-  - `types`
+- Each `other` always uses the same shape: `top-N`, `rest`, `types`.
 
-Example shape:
-```text
-[/some/path] 27.2GB
-├─ big-item-A ......................................... 5.6GB
-├─ big-item-B ......................................... 3.2GB
-└─ other (<500MB each, 877 items) ..................... 688MB
-   ├─ top-5:
-   │  googleapis ...................................... 119MB
-   │  @vkontakte ...................................... 118MB
-   │  typescript ...................................... 63.8MB
-   │  ...
-   ├─ rest (872 items) ................................ 296MB
-   └─ types:
-      .json ........................................... 640KB (1 files)
-```
-
-## 🖼️ Styled Output (Emoji Mode)
-```text
-┌─ 🛰️  mss :: mac-storage-scout
-│  🎚️  threshold: 500MB | 🔝 top: 5 | 📐 size-mode: logical
-└─ 🧭 sections: 4
-
-📂 [/Users/you/Library/Application Support] 45.9GB
-├─ 📁 Claude........................................... 22.5GB
-└─ 📦 other (<500MB each, 877 items) .................. 688MB
-   ├─ 🔝 top-5:
-   │  ├─ 📌 googleapis................................. 119MB
-   │  └─ 📌 @vkontakte................................. 118MB
-   ├─ 🧩 rest (872 items) ............................. 296MB
-   └─ 🧪 types:
-      ├─ 🏷️  .json..................................... 640KB (1 files)
-      └─ 🏷️  rest types................................ 3.2GB (5912 files)
-```
-
-## 🛡️ Safety Model for Delete
-`mss delete` has explicit safeguards:
-- Requires `--yes` for actual delete.
-- `--dry-run` available for verification.
-- Refuses dangerous roots: `/`, `/System`, `/usr`, `/bin`, `/sbin`, `/private/var/vm`.
-- Intended for user caches/logs/app data cleanup only.
+## 🧰 Standard Operator Workflow
+1. Scan with `--profile macos-core`.
+2. Pick candidates (logs / caches / unused app data).
+3. Run `delete --dry-run`.
+4. Run `delete --yes` after confirmation.
+5. Re-scan and record reclaimed space.
 
 ## 🧱 Project Docs (Spec + Evidence)
 - Main spec: `spec/mac-storage-scout.spec.md`
 - Output format source of truth: `spec/mac-storage-scout.output-format.source-of-truth.md`
 - macOS performance/reference notes: `spec/mac-storage-scout.macos-performance.reference.md`
-- ASCII UX research + architecture ASCII diagram: `spec/ascii-ux-research.md`
+- ASCII UX research + architecture diagram: `spec/ascii-ux-research.md`
+- Universal agent skill: `.agent-skill/SKILL.md`
 - Task DAG: `spec/tasks/*.md`
 - Runtime/build proofs: `spec/evidence/*`
 - Session handoff runbook: `spec/SESSION-HANDOFF.md`
 - AI coding/testing rule set: `.ai/README.md`, `.ai/rules/*`
 
-## 🧰 Standard Operator Workflow
-1. Scan with `--profile macos-core`.
-2. Pick candidates (logs/caches/unused app data).
-3. Run `delete --dry-run`.
-4. Run `delete --yes` after confirmation.
-5. Re-scan and record reclaimed space.
-
 ## 🔬 Build / Test
+Run from the repository root (path agnostic):
 ```bash
-cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
-go build -o ./bin/mss ./cmd/mss
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 ```
 
 ## 🧱 Contract Lint Gate

@@ -3,11 +3,11 @@
 ## Goal
 Continue work autonomously with deterministic behavior, consistent reporting, and proof artifacts.
 
-## Canonical Paths
-- Project root: `/Users/k.lebedev/Developer/mac-storage-scout`
-- Binary: `/Users/k.lebedev/Developer/mac-storage-scout/bin/mss`
-- Specs: `/Users/k.lebedev/Developer/mac-storage-scout/spec`
-- Evidence: `/Users/k.lebedev/Developer/mac-storage-scout/spec/evidence`
+## Canonical Paths (relative to project root)
+- Binary: `./bin/mac-storage-scout`
+- Skill doc: `.agent-skill/SKILL.md`
+- Specs: `./spec`
+- Evidence: `./spec/evidence`
 
 ## Required Reading Order
 1. `.ai/rules/go-devgen.contracts.md`
@@ -54,26 +54,25 @@ Minimum proof set:
 - delete dry-run and delete output samples
 
 ## Standard Commands
+Run from the project root (path agnostic):
 ```bash
-cd /Users/k.lebedev/Developer/mac-storage-scout
-
 # verify
 go test ./...
-go build -o ./bin/mss ./cmd/mss
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
 # scan
-./bin/mss scan --profile macos-core --threshold 500MB --top 5
+./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5
 
 # targeted scan
-./bin/mss scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
+./bin/mac-storage-scout scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
 
 # delete workflow
-./bin/mss delete --dry-run <path> [path...]
-./bin/mss delete --yes <path> [path...]
+./bin/mac-storage-scout delete --dry-run <path> [path...]
+./bin/mac-storage-scout delete --yes <path> [path...]
 ```
 
 ## Acceptance Checklist
-- Binary runs from `bin/mss`.
+- Binary runs from `bin/mac-storage-scout`.
 - Report formatting is readable and aligned in monospaced terminal.
 - `other/top/rest/types` is present and consistent.
 - `delete` command enforces confirmation and path guards.

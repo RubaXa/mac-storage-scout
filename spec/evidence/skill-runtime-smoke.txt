@@ -1,0 +1,36 @@
+=== TSK-06 runtime-smoke (2026-05-01) ===
+
+--- go test ./... ---
+?   	mac-storage-scout/internal/mss/adapters/fs	[no test files]
+?   	mac-storage-scout/internal/mss/adapters/progress	[no test files]
+?   	mac-storage-scout/internal/mss/app	[no test files]
+ok  	mac-storage-scout/cmd/mac-storage-scout	(cached)
+ok  	mac-storage-scout/internal/mss/adapters/aggregate	(cached)
+ok  	mac-storage-scout/internal/mss/adapters/report	(cached)
+?   	mac-storage-scout/internal/mss/ports	[no test files]
+ok  	mac-storage-scout/internal/mss/domain	(cached)
+
+--- go build ---
+BUILD OK
+
+--- skill workflow E2E (synthetic) ---
+mac-storage-scout
+threshold: 1.00MB | top: 5 | size-mode: logical
+sections: 1
+
+[/tmp/scout-e2e] 5.00MB
+├─ b................................................. 3.00MB
+│  └─ blob.............................................. 3.00MB
+└─ a................................................. 2.00MB
+   └─ blob.............................................. 2.00MB
+
+DRY-RUN delete /tmp/scout-e2e/a (2.00MB)
+DRY-RUN delete /tmp/scout-e2e/b (3.00MB)
+DRY-RUN total candidate: 5.00MB
+
+skip /System: refusing protected path: /System
+Deleted total estimated: 0B
+
+DELETED /tmp/scout-e2e/a (2.00MB)
+DELETED /tmp/scout-e2e/b (3.00MB)
+Deleted total estimated: 5.00MB

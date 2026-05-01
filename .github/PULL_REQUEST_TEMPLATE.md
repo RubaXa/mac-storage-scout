@@ -41,7 +41,7 @@ Describe *why* each change group exists and what behavior/process it affects.
 
 ## ✅ Verification
 - [ ] `go test ./...`
-- [ ] `go build -o ./bin/mss ./cmd/mss`
+- [ ] `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout`
 - [ ] runtime check (if behavior changed)
 
 Verification output (short):

@@ -13,14 +13,15 @@
 
 ## REQUIRED_BOOTSTRAP
 1. read AGENTS.md
-2. read relevant task specs `spec/tasks/*.md` (Execution Log sections)
-3. run verification baseline
+2. read `.agent-skill/SKILL.md` (universal CLI skill — build/scan/delete)
+3. read relevant task specs `spec/tasks/*.md` (Execution Log sections)
+4. run verification baseline
 
 ## VERIFICATION_BASELINE
+Run from the project root (path agnostic):
 ```bash
-cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
-go build -o ./bin/mss ./cmd/mss
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 ```
 
 ## BEHAVIOR_RULES

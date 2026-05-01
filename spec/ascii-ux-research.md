@@ -5,7 +5,7 @@
 - NO_COLOR: https://no-color.org/ (avoid hard dependency on color for semantics)
 - Box-drawing conventions: https://en.wikipedia.org/wiki/Box-drawing_character
 
-## Decisions for `mss`
+## Decisions for `mac-storage-scout`
 1. Keep output useful without color; structure must be readable in plain monochrome terminal.
 2. Use a single tree grammar everywhere:
    - `├─` intermediate
@@ -21,7 +21,7 @@
 
 ## Canonical Pretty Layout
 ```text
-┌─ mss :: mac-storage-scout
+┌─ mac-storage-scout
 │  threshold: 500MB | top: 5 | size-mode: logical
 └─ sections: 4
 
@@ -42,7 +42,7 @@
 ## ASCII Architecture Diagram (for docs)
 ```text
 +------------------+      +---------------------------+
-| CLI (cmd/mss)    +----->+ Scan Orchestrator (app)   |
+| CLI (cmd/mac-storage-scout)    +----->+ Scan Orchestrator (app)   |
 +------------------+      +-------------+-------------+
                                          |
                   +----------------------+----------------------+

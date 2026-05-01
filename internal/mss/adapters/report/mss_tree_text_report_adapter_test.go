@@ -35,7 +35,7 @@ func TestRenderContainsOtherBlock(t *testing.T) {
 		t.Fatalf("Render(...) unexpected error: %v", err)
 	}
 	out := buf.String()
-	if !strings.Contains(out, "mss :: mac-storage-scout") {
+	if !strings.Contains(out, "mac-storage-scout") {
 		t.Errorf("Render(...) output missing header: %s", out)
 	}
 	if !strings.Contains(out, "other (<500B each") {
@@ -76,7 +76,7 @@ func TestRenderPlainOutputUsesASCIIOnlyLabels(t *testing.T) {
 	if strings.Contains(out, "🛰️") || strings.Contains(out, "📂") || strings.Contains(out, "📁") {
 		t.Errorf("Render(...) plain output contains emoji: %s", out)
 	}
-	if !strings.Contains(out, "mss :: mac-storage-scout") {
+	if !strings.Contains(out, "mac-storage-scout") {
 		t.Errorf("Render(...) plain output missing header: %s", out)
 	}
 	if !strings.Contains(out, "threshold: 500B | top: 5 | size-mode: logical") {
