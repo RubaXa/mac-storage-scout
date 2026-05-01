@@ -330,6 +330,8 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - implemented_in: `TSK-06`
 - D-007: Runtime command name is `mac-storage-scout` (no default `mss` alias) to prevent global binary name collisions in agent environments.
   - implemented_in: `TSK-07`
+- D-008: Three-checkpoint master sync protocol is mandatory — sync before branching, before opening a PR, and after merge — with proactive return-to-master offer to the user.
+  - implemented_in: `TSK-08`
 
 ### Invalid / Reverted Decisions
 - R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.
