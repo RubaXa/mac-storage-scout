@@ -47,7 +47,19 @@
 - **Scenario**: Renderer sorting remains stable
   - `internal/mss/adapters/report/mss_tree_text_report_adapter_test.go` :: `should_sort_output_stably_for_equal_sizes`
 
-## 5. Execution Log
-- [ ] `[timestamp]` Task initialized.
-- [ ] `[timestamp]` Files created/updated.
-- [ ] `[timestamp]` Verification executed: `go test ./...` -> `<pass/fail>`.
+## 5. Execution Log (AI-to-AI)
+## EXEC_LOG_META
+- task_id: TSK-04
+- status: done
+- canonical_log: ../ACTION-LOG.md
+- evidence_refs:
+  - ../evidence/runtime-scan-proof.txt
+  - ../evidence/acceptance-matrix.md
+
+## EXEC_TIMELINE
+- 2026-05-01T15:50:00Z: renderer unified for `other/top/rest/types`
+- 2026-05-01T16:03:00Z: ASCII UX improvements + emoji-enhanced readability pass
+- 2026-05-01T16:03:00Z: verification `go test ./...` -> PASS
+
+## EXEC_POINTER
+For full cross-task chronology use `spec/ACTION-LOG.md`.

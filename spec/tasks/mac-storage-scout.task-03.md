@@ -48,7 +48,19 @@
 - **Scenario**: Items below threshold are merged into other
   - `internal/mss/adapters/aggregate/mss_tree_aggregator_adapter_test.go` :: `should_merge_small_items_into_other_bucket`
 
-## 5. Execution Log
-- [ ] `[timestamp]` Task initialized.
-- [ ] `[timestamp]` Files created/updated.
-- [ ] `[timestamp]` Verification executed: `go test ./...` -> `<pass/fail>`.
+## 5. Execution Log (AI-to-AI)
+## EXEC_LOG_META
+- task_id: TSK-03
+- status: done
+- canonical_log: ../ACTION-LOG.md
+- evidence_refs:
+  - ../evidence/runtime-scan-proof.txt
+  - ../evidence/acceptance-matrix.md
+
+## EXEC_TIMELINE
+- 2026-05-01T12:55:00Z: task initialized and threshold/other aggregation implemented
+- 2026-05-01T12:55:00Z: aggregation behavior validated on runtime data
+- 2026-05-01T12:55:00Z: verification `go test ./...` -> PASS
+
+## EXEC_POINTER
+For full cross-task chronology use `spec/ACTION-LOG.md`.

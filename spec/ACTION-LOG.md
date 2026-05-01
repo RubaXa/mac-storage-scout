@@ -81,3 +81,16 @@
   - spec/ACTION-LOG.md
 - verification:
   - docs update only -> N/A
+
+
+### 2026-05-01T13:15:00Z
+- actor: agent
+- summary: replaced placeholder Execution Log blocks in all task specs with concrete AI-to-AI execution sections
+- files_changed:
+  - spec/tasks/mac-storage-scout.task-01.md
+  - spec/tasks/mac-storage-scout.task-02.md
+  - spec/tasks/mac-storage-scout.task-03.md
+  - spec/tasks/mac-storage-scout.task-04.md
+  - spec/tasks/mac-storage-scout.task-05.md
+- verification:
+  - structural grep for EXEC_LOG_META/EXEC_TIMELINE in all task files -> PASS

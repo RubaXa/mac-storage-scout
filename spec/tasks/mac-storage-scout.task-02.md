@@ -52,7 +52,20 @@
 - **Scenario**: Size mode switch changes accounting semantics
   - `internal/mss/adapters/fs/mss_sys_stat_adapter_test.go` :: `should_compute_logical_and_allocated_sizes`
 
-## 5. Execution Log
-- [ ] `[timestamp]` Task initialized.
-- [ ] `[timestamp]` Files created/updated.
-- [ ] `[timestamp]` Verification executed: `go test ./...` -> `<pass/fail>`.
+## 5. Execution Log (AI-to-AI)
+## EXEC_LOG_META
+- task_id: TSK-02
+- status: done
+- canonical_log: ../ACTION-LOG.md
+- evidence_refs:
+  - ../evidence/runtime-scan-proof.txt
+  - ../evidence/size-mode-allocated-proof.txt
+  - ../evidence/acceptance-matrix.md
+
+## EXEC_TIMELINE
+- 2026-05-01T12:55:00Z: task initialized and walker/stat/progress adapters implemented
+- 2026-05-01T12:55:00Z: non-fatal error and size-mode behavior validated on live scan
+- 2026-05-01T12:55:00Z: verification `go test ./...` -> PASS
+
+## EXEC_POINTER
+For full cross-task chronology use `spec/ACTION-LOG.md`.

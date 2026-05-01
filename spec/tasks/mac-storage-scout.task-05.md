@@ -56,9 +56,22 @@
 - **Scenario**: CLI does not fail on partial permission access
   - `internal/mss/app/mss_scan_orchestrator_test.go` :: `should_continue_when_some_paths_are_unreadable`
 
-## 5. Execution Log
-- [ ] `[timestamp]` Task initialized.
-- [ ] `[timestamp]` Files created/updated.
-- [ ] `[timestamp]` Verification executed: `go test ./...` -> `<pass/fail>`.
-- [ ] `[timestamp]` Verification executed: `go build ./cmd/mss` -> `<pass/fail>`.
-- [ ] `[timestamp]` Verification executed: `./mss scan --threshold 500MB --profile macos-core --no-progress` -> `<pass/fail>`.
+## 5. Execution Log (AI-to-AI)
+## EXEC_LOG_META
+- task_id: TSK-05
+- status: done
+- canonical_log: ../ACTION-LOG.md
+- evidence_refs:
+  - ../evidence/build-test-proof.txt
+  - ../evidence/profile-macos-core-proof.txt
+  - ../evidence/acceptance-matrix.md
+
+## EXEC_TIMELINE
+- 2026-05-01T15:50:00Z: integration wiring validated
+- 2026-05-01T16:05:00Z: repository initialized and pushed to GitHub
+- 2026-05-01T16:03:00Z: verification `go test ./...` -> PASS
+- 2026-05-01T16:03:00Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
+- 2026-05-01T16:03:00Z: verification runtime scan -> PASS
+
+## EXEC_POINTER
+For full cross-task chronology use `spec/ACTION-LOG.md`.
