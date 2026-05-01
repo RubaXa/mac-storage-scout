@@ -343,8 +343,7 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
 0. Before code changes, load `.ai` rule set:
    - `.ai/rules/go-devgen.contracts.md`
    - `.ai/rules/go-qa.testing.md`
-   - `.ai/checklists/go-change-checklist.md`
-   - `.ai/checklists/go-test-checklist.md`
+   - setup hooks once: `./scripts/setup-githooks.sh`
 1. Для каждого adapter-level типа добавлять doc-comment с trace:
    - `@implements {PortName} <path/to/port.file>`
 2. Для методов, реализующих контракт без изменения семантики, использовать `@see {PortName#MethodName} <path/to/port.file>`.

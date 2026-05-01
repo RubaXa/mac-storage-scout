@@ -6,18 +6,17 @@ This folder contains machine-readable engineering rules so autonomous agents can
 ## Read Order
 1. `.ai/rules/go-devgen.contracts.md`
 2. `.ai/rules/go-qa.testing.md`
-3. `.ai/checklists/go-change-checklist.md`
-4. `.ai/checklists/go-test-checklist.md`
-5. `.ai/research/go-practices-evidence.md`
-6. `AGENTS.md`
-7. `README.md` + `spec/*`
+3. `.ai/research/go-practices-evidence.md`
+4. `AGENTS.md`
+5. `README.md` + `spec/*`
 
 ## Folder Layout
 - `rules/`: normative coding and testing contracts.
-- `checklists/`: execution checklists for implementation and verification.
 - `research/`: source-backed rationale and external best practices.
 
 ## Mandatory Agent Flow
+0. Run project setup for hooks:
+   - `./scripts/setup-githooks.sh`
 1. Read rules and affected specs.
 2. Run baseline verification (`go test ./...`, `go build -o ./bin/mss ./cmd/mss`).
 3. Implement minimal scoped change (YAGNI).

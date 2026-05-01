@@ -14,25 +14,24 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 ## AUTHORITATIVE_READ_ORDER
 1. .ai/rules/go-devgen.contracts.md
 2. .ai/rules/go-qa.testing.md
-3. .ai/checklists/go-change-checklist.md
-4. .ai/checklists/go-test-checklist.md
-5. .ai/research/go-practices-evidence.md
-6. README.md
-7. spec/mac-storage-scout.spec.md
-8. spec/mac-storage-scout.output-format.source-of-truth.md
-9. spec/SESSION-HANDOFF.md
-10. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
+3. .ai/research/go-practices-evidence.md
+4. README.md
+5. spec/mac-storage-scout.spec.md
+6. spec/mac-storage-scout.output-format.source-of-truth.md
+7. spec/SESSION-HANDOFF.md
+8. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
 
 ## AI_RULESET_LOCATION
 - root: `.ai/`
 - mandatory_rules:
   - `.ai/rules/go-devgen.contracts.md`
   - `.ai/rules/go-qa.testing.md`
-- mandatory_checklists:
-  - `.ai/checklists/go-change-checklist.md`
-  - `.ai/checklists/go-test-checklist.md`
 - reference_research:
   - `.ai/research/go-practices-evidence.md`
+
+## PROJECT_SETUP
+- run once per clone:
+  - `./scripts/setup-githooks.sh`
 
 ## HARD_CONTRACTS
 - output.large_items:
