@@ -17,9 +17,14 @@
 - Excluded:
   - 
 
-## 📦 Changed Files
-- `path/to/file`
-- `path/to/file`
+## 🧩 Change Map (Purpose-Oriented)
+Describe *why* each change group exists and what behavior/process it affects.
+
+| Change Group | Files/Paths | Purpose | Expected Effect |
+|---|---|---|---|
+| Example: Git workflow policy | `AGENTS.md`, `CLAUDE.md` | enforce `ai/<name>` + PR flow | consistent delivery and review path |
+| Example: PR governance | `.github/PULL_REQUEST_TEMPLATE.md` | standardize PR quality signal | faster and clearer reviews |
+| Example: Spec alignment | `spec/...` | sync docs with implemented policy | reduced ambiguity for new agents |
 
 ## 🧭 Spec / Task Traceability
 - Root spec section(s):
