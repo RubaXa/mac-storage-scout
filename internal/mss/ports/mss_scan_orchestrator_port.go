@@ -11,5 +11,12 @@ import (
 //
 // @consumer cmd/mss/main.go
 type MssScanOrchestratorPort interface {
+	// Run executes scan lifecycle from traversal through aggregation.
+	//
+	// @purpose Provide one contract entrypoint for scan orchestration.
+	// @consumer cmd/mss/main.go
+	// @param ctx Cancellation and deadline propagation context.
+	// @param cfg Scan configuration.
+	// @returns Aggregated roots, counters snapshot, and optional execution error.
 	Run(ctx context.Context, cfg domain.MssScanConfig) ([]*domain.MssNode, domain.MssCounters, error)
 }
