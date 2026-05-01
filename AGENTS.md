@@ -3,20 +3,36 @@
 ## DOC_META
 - doc_id: AGENTS
 - doc_type: ai_to_ai_operating_contract
-- version: 1.0.0
+- version: 1.1.0
 - status: active
 - repo: mac-storage-scout
-- updated_utc: 2026-05-01T13:12:00Z
+- updated_utc: 2026-05-01T14:19:39Z
 
 ## EXECUTION_INTENT
 Enable deterministic autonomous work on this repository with minimal ambiguity.
 
 ## AUTHORITATIVE_READ_ORDER
-1. README.md
-2. spec/mac-storage-scout.spec.md
-3. spec/mac-storage-scout.output-format.source-of-truth.md
-4. spec/SESSION-HANDOFF.md
-5. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
+1. .ai/rules/go-devgen.contracts.md
+2. .ai/rules/go-qa.testing.md
+3. .ai/checklists/go-change-checklist.md
+4. .ai/checklists/go-test-checklist.md
+5. .ai/research/go-practices-evidence.md
+6. README.md
+7. spec/mac-storage-scout.spec.md
+8. spec/mac-storage-scout.output-format.source-of-truth.md
+9. spec/SESSION-HANDOFF.md
+10. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
+
+## AI_RULESET_LOCATION
+- root: `.ai/`
+- mandatory_rules:
+  - `.ai/rules/go-devgen.contracts.md`
+  - `.ai/rules/go-qa.testing.md`
+- mandatory_checklists:
+  - `.ai/checklists/go-change-checklist.md`
+  - `.ai/checklists/go-test-checklist.md`
+- reference_research:
+  - `.ai/research/go-practices-evidence.md`
 
 ## HARD_CONTRACTS
 - output.large_items:
@@ -41,14 +57,15 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
     - /private/var/vm
 
 ## OPERATIONAL_WORKFLOW
-1. run verification baseline
-2. implement scoped change
-3. run verification again
-4. update docs/specs if behavior changed
-5. append Execution Log in the affected task spec file(s)
-6. create branch `ai/<name>`
-7. commit + push branch
-8. open pull request into `master`
+1. load `.ai` rule set and affected specs
+2. run verification baseline
+3. implement scoped change
+4. run verification again
+5. update docs/specs if behavior changed
+6. append Execution Log in the affected task spec file(s)
+7. create branch `ai/<name>`
+8. commit + push branch
+9. open pull request into `master`
 
 ## REQUIRED_COMMANDS
 ```bash

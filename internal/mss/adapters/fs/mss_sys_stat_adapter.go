@@ -7,6 +7,7 @@ import (
 	"syscall"
 )
 
+// mssSizeFromStat selects logical or allocated byte size from syscall metadata.
 func mssSizeFromStat(mode domain.MssSizeMode, info any, fallback int64) int64 {
 	st, ok := info.(*syscall.Stat_t)
 	if !ok || st == nil {

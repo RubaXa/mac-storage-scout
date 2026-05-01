@@ -99,6 +99,7 @@ Example shape:
 - Task DAG: `spec/tasks/*.md`
 - Runtime/build proofs: `spec/evidence/*`
 - Session handoff runbook: `spec/SESSION-HANDOFF.md`
+- AI coding/testing rule set: `.ai/README.md`, `.ai/rules/*`, `.ai/checklists/*`
 
 ## 🧰 Standard Operator Workflow
 1. Scan with `--profile macos-core`.

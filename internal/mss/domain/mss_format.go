@@ -4,6 +4,9 @@ package domain
 
 import "fmt"
 
+// MssHumanBytes formats bytes in binary units for report readability.
+//
+// @purpose Keep size rendering compact and deterministic across all outputs.
 func MssHumanBytes(v int64) string {
 	if v < 0 {
 		v = 0

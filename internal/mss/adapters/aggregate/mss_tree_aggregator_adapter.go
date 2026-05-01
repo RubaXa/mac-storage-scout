@@ -9,14 +9,25 @@ import (
 	"sort"
 )
 
+// MssTreeAggregatorAdapter builds deterministic threshold-aware trees from walk events.
+//
+// @purpose Build deterministic threshold-aware trees for report rendering.
+// @implements {MssNodeAggregatorPort} internal/mss/ports/mss_node_aggregator_port.go
 type MssTreeAggregatorAdapter struct{}
 
-// @implements {MssNodeAggregatorPort} internal/mss/ports/mss_node_aggregator_port.go
+// @see {MssNodeAggregatorPort#BuildTree} internal/mss/ports/mss_node_aggregator_port.go
+// @pre cfg.TopN >= 1 and cfg.ThresholdBytes > 0.
+// @post Every returned root preserves explicit-vs-other threshold contract.
 func (a *MssTreeAggregatorAdapter) BuildTree(events []domain.MssWalkEvent, cfg domain.MssScanConfig) ([]*domain.MssNode, error) {
 	if cfg.TopN < 1 {
-		return nil, fmt.Errorf("topN must be >= 1")
+		return nil, fmt.Errorf("[MssTreeAggregatorAdapter.BuildTree] topN must be >= 1")
+	}
+	if cfg.ThresholdBytes <= 0 {
+		return nil, fmt.Errorf("[MssTreeAggregatorAdapter.BuildTree] threshold must be positive")
 	}
 
+	// START_INDEX_NODES_FROM_EVENTS
+	// invariant: each unique path maps to exactly one node pointer in nodeByPath.
 	nodeByPath := map[string]*domain.MssNode{}
 	childByParent := map[string][]*domain.MssNode{}
 
@@ -41,11 +52,13 @@ func (a *MssTreeAggregatorAdapter) BuildTree(events []domain.MssWalkEvent, cfg d
 			childByParent[parent.Path] = append(childByParent[parent.Path], n)
 		}
 	}
+	// END_INDEX_NODES_FROM_EVENTS
 
 	for p, children := range childByParent {
 		nodeByPath[p].Children = dedupChildren(children)
 	}
 
+	// START_SELECT_CONFIGURED_ROOTS
 	rootSet := map[string]bool{}
 	for _, rp := range cfg.Paths {
 		ap := rp
@@ -62,13 +75,17 @@ func (a *MssTreeAggregatorAdapter) BuildTree(events []domain.MssWalkEvent, cfg d
 			roots = append(roots, n)
 		}
 	}
+	// END_SELECT_CONFIGURED_ROOTS
 
+	// START_APPLY_AGGREGATION_POLICIES
+	// purpose: ensure deterministic sizing, threshold split, and stable root ordering.
 	for _, r := range roots {
 		recomputeSizes(r)
 		applyThreshold(r, cfg.ThresholdBytes, cfg.TopN)
 	}
 
 	sortNodes(roots)
+	// END_APPLY_AGGREGATION_POLICIES
 	return roots, nil
 }
 
@@ -120,6 +137,8 @@ func applyThreshold(n *domain.MssNode, threshold int64, topN int) {
 
 	visible := make([]*domain.MssNode, 0, len(n.Children))
 	small := make([]*domain.MssNode, 0)
+	// START_SPLIT_VISIBLE_AND_OTHER
+	// invariant: items >= threshold stay explicit; items < threshold move to other bucket.
 	for _, c := range n.Children {
 		if c.SizeBytes >= threshold {
 			visible = append(visible, c)
@@ -127,6 +146,7 @@ func applyThreshold(n *domain.MssNode, threshold int64, topN int) {
 			small = append(small, c)
 		}
 	}
+	// END_SPLIT_VISIBLE_AND_OTHER
 
 	if len(small) == 0 {
 		n.Children = visible

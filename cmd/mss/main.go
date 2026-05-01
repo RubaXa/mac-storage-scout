@@ -45,6 +45,7 @@ func printUsage() {
 }
 
 func runScan(args []string) {
+	// START_PARSE_SCAN_FLAGS
 	fsCmd := flag.NewFlagSet("scan", flag.ContinueOnError)
 	threshold := fsCmd.String("threshold", "500MB", "detail threshold")
 	top := fsCmd.Int("top", 5, "top items in other bucket")
@@ -58,7 +59,9 @@ func runScan(args []string) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
+	// END_PARSE_SCAN_FLAGS
 
+	// START_VALIDATE_SCAN_CONFIG
 	thBytes, err := domain.MssParseBytes(*threshold)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "invalid --threshold:", err)
@@ -74,7 +77,9 @@ func runScan(args []string) {
 		fmt.Fprintln(os.Stderr, "invalid --top:", err)
 		os.Exit(2)
 	}
+	// END_VALIDATE_SCAN_CONFIG
 
+	// START_RESOLVE_SCAN_PATHS
 	paths := fsCmd.Args()
 	if *profile == "macos-core" {
 		home, _ := os.UserHomeDir()
@@ -88,6 +93,7 @@ func runScan(args []string) {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
+	// END_RESOLVE_SCAN_PATHS
 
 	cfg := domain.MssScanConfig{
 		Paths:          paths,
@@ -105,6 +111,8 @@ func runScan(args []string) {
 		Progress:   &progress.MssAnsiProgressAdapter{},
 	}
 
+	// START_RUN_SCAN_PIPELINE
+	// purpose: walk -> aggregate -> render while preserving non-fatal scan behavior.
 	roots, _, runErr := orch.Run(context.Background(), cfg)
 	if runErr != nil && !errors.Is(runErr, os.ErrPermission) {
 		fmt.Fprintln(os.Stderr, "scan failed:", runErr)
@@ -116,9 +124,11 @@ func runScan(args []string) {
 		fmt.Fprintln(os.Stderr, "render failed:", err)
 		os.Exit(1)
 	}
+	// END_RUN_SCAN_PIPELINE
 }
 
 func runDelete(args []string) {
+	// START_PARSE_DELETE_FLAGS
 	delCmd := flag.NewFlagSet("delete", flag.ContinueOnError)
 	dryRun := delCmd.Bool("dry-run", false, "show deletion plan without deleting")
 	yes := delCmd.Bool("yes", false, "confirm deletion without prompt")
@@ -136,7 +146,10 @@ func runDelete(args []string) {
 		fmt.Fprintln(os.Stderr, "delete: pass --yes to execute deletion (or use --dry-run)")
 		os.Exit(2)
 	}
+	// END_PARSE_DELETE_FLAGS
 
+	// START_EXECUTE_DELETE_PLAN
+	// invariant: protected paths are never deleted, and dry-run always reports candidate totals.
 	var total int64
 	for _, raw := range targets {
 		p := expandPath(raw)
@@ -172,6 +185,7 @@ func runDelete(args []string) {
 	} else {
 		fmt.Printf("Deleted total estimated: %s\n", domain.MssHumanBytes(total))
 	}
+	// END_EXECUTE_DELETE_PLAN
 }
 
 func guardDeletePath(path string) error {
@@ -203,7 +217,7 @@ func isProtectedDeletePath(path string) bool {
 
 func validateTopN(top int) error {
 	if top < 1 {
-		return fmt.Errorf("top must be >= 1")
+		return fmt.Errorf("[validateTopN] top must be >= 1")
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"mac-storage-scout/internal/mss/domain"
 )
 
+// MssFilesystemWalkerPort walks filesystem entries and emits scan events.
 type MssFilesystemWalkerPort interface {
 	Walk(ctx context.Context, cfg domain.MssScanConfig, emit func(domain.MssWalkEvent)) domain.MssCounters
 }

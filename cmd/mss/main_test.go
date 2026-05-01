@@ -9,14 +9,25 @@ import (
 )
 
 func TestValidateTopN(t *testing.T) {
-	if err := validateTopN(1); err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	testCases := []struct {
+		name    string
+		top     int
+		wantErr bool
+	}{
+		{name: "accepts minimum valid value", top: 1, wantErr: false},
+		{name: "rejects zero", top: 0, wantErr: true},
+		{name: "rejects negative", top: -2, wantErr: true},
 	}
-	if err := validateTopN(0); err == nil {
-		t.Fatalf("expected error for top=0")
-	}
-	if err := validateTopN(-2); err == nil {
-		t.Fatalf("expected error for negative top")
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateTopN(tc.top)
+			gotErr := err != nil
+			if gotErr != tc.wantErr {
+				t.Errorf("validateTopN(%d) error = %v, wantErr %v", tc.top, err, tc.wantErr)
+			}
+		})
 	}
 }
 
@@ -29,9 +40,12 @@ func TestGuardDeletePathBlocksProtectedAndDescendants(t *testing.T) {
 	}
 
 	for _, p := range cases {
-		if err := guardDeletePath(p); err == nil {
-			t.Fatalf("expected protected path to be blocked: %s", p)
-		}
+		p := p
+		t.Run(p, func(t *testing.T) {
+			if err := guardDeletePath(p); err == nil {
+				t.Errorf("guardDeletePath(%q) error = nil, want protected path error", p)
+			}
+		})
 	}
 }
 
@@ -43,7 +57,7 @@ func TestGuardDeletePathBlocksSymlinkAliasToProtected(t *testing.T) {
 	}
 
 	if err := guardDeletePath(alias); err == nil {
-		t.Fatalf("expected alias to protected path to be blocked")
+		t.Errorf("guardDeletePath(%q) error = nil, want protected path error", alias)
 	}
 }
 
@@ -55,6 +69,6 @@ func TestGuardDeletePathAllowsRegularPath(t *testing.T) {
 	}
 
 	if err := guardDeletePath(target); err != nil {
-		t.Fatalf("expected regular path to be allowed, got: %v", err)
+		t.Errorf("guardDeletePath(%q) error = %v, want nil", target, err)
 	}
 }

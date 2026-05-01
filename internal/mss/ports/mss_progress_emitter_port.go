@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 )
 
+// MssProgressEmitterPort starts and stops live progress rendering.
 type MssProgressEmitterPort interface {
 	Start(counters *atomic.Pointer[domain.MssCounters]) func()
 }

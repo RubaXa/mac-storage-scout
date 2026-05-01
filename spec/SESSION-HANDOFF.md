@@ -10,11 +10,15 @@ Continue work autonomously with deterministic behavior, consistent reporting, an
 - Evidence: `/Users/k.lebedev/Developer/mac-storage-scout/spec/evidence`
 
 ## Required Reading Order
-1. `README.md`
-2. `spec/mac-storage-scout.spec.md`
-3. `spec/mac-storage-scout.output-format.source-of-truth.md`
-4. `spec/tasks/mac-storage-scout.task-*.md`
-5. latest files in `spec/evidence/`
+1. `.ai/rules/go-devgen.contracts.md`
+2. `.ai/rules/go-qa.testing.md`
+3. `.ai/checklists/go-change-checklist.md`
+4. `.ai/checklists/go-test-checklist.md`
+5. `README.md`
+6. `spec/mac-storage-scout.spec.md`
+7. `spec/mac-storage-scout.output-format.source-of-truth.md`
+8. `spec/tasks/mac-storage-scout.task-*.md`
+9. latest files in `spec/evidence/`
 
 ## Non-Negotiable Contracts
 - Print all items `>= threshold` explicitly.

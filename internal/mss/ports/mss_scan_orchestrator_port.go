@@ -7,6 +7,7 @@ import (
 	"mac-storage-scout/internal/mss/domain"
 )
 
+// MssScanOrchestratorPort coordinates walk, aggregation, and final report inputs.
 type MssScanOrchestratorPort interface {
 	Run(ctx context.Context, cfg domain.MssScanConfig) ([]*domain.MssNode, domain.MssCounters, error)
 }

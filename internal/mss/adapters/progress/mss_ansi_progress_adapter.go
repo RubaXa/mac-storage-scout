@@ -6,13 +6,19 @@ import (
 	"fmt"
 	"mac-storage-scout/internal/mss/domain"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 )
 
+// MssAnsiProgressAdapter renders periodic progress status for interactive terminals.
+//
+// @purpose Provide lightweight live scan feedback without affecting worker throughput.
+// @implements {MssProgressEmitterPort} internal/mss/ports/mss_progress_emitter_port.go
 type MssAnsiProgressAdapter struct{}
 
-// @implements {MssProgressEmitterPort} internal/mss/ports/mss_progress_emitter_port.go
+// @see {MssProgressEmitterPort#Start} internal/mss/ports/mss_progress_emitter_port.go
+// @post Returned stop function is safe to call once after Start.
 func (a *MssAnsiProgressAdapter) Start(counters *atomic.Pointer[domain.MssCounters]) func() {
 	if !mssIsTTY() {
 		return func() {}
@@ -48,9 +54,12 @@ func (a *MssAnsiProgressAdapter) Start(counters *atomic.Pointer[domain.MssCounte
 		}
 	}()
 
+	var once sync.Once
 	return func() {
-		close(stop)
-		<-done
+		once.Do(func() {
+			close(stop)
+			<-done
+		})
 	}
 }
 

@@ -4,13 +4,17 @@ package domain
 
 import "time"
 
+// MssSizeMode defines how file size is accounted during scans.
 type MssSizeMode string
 
 const (
-	MssSizeModeLogical   MssSizeMode = "logical"
+	// MssSizeModeLogical uses logical file size (`st_size`).
+	MssSizeModeLogical MssSizeMode = "logical"
+	// MssSizeModeAllocated uses allocated blocks (`st_blocks*512`).
 	MssSizeModeAllocated MssSizeMode = "allocated"
 )
 
+// MssScanConfig defines scan execution parameters.
 type MssScanConfig struct {
 	Paths          []string
 	ThresholdBytes int64
@@ -22,6 +26,7 @@ type MssScanConfig struct {
 	OneFileSystem  bool
 }
 
+// MssCounters tracks scan progress and completion statistics.
 type MssCounters struct {
 	DirsScanned  int64
 	FilesScanned int64
@@ -31,6 +36,7 @@ type MssCounters struct {
 	StartedAt    time.Time
 }
 
+// MssEntryKind describes filesystem entry kind.
 type MssEntryKind string
 
 const (
@@ -38,6 +44,7 @@ const (
 	MssEntryKindDir  MssEntryKind = "dir"
 )
 
+// MssWalkEntry is one filesystem entry emitted by walker.
 type MssWalkEntry struct {
 	Path       string
 	ParentPath string
@@ -47,17 +54,20 @@ type MssWalkEntry struct {
 	Ext        string
 }
 
+// MssWalkEvent wraps a walk entry or a non-fatal traversal error.
 type MssWalkEvent struct {
 	Entry *MssWalkEntry
 	Err   error
 }
 
+// MssExtStat aggregates size and count per file extension.
 type MssExtStat struct {
 	Ext       string
 	SizeBytes int64
 	Count     int64
 }
 
+// MssOtherBucket summarizes items below threshold for one directory.
 type MssOtherBucket struct {
 	Count       int
 	SizeBytes   int64
@@ -69,6 +79,7 @@ type MssOtherBucket struct {
 	TypeRestSz  int64
 }
 
+// MssNode is an aggregated filesystem tree node used by report rendering.
 type MssNode struct {
 	Path      string
 	Name      string
