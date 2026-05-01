@@ -96,13 +96,48 @@ When behavior/UX/CLI changes:
 - PR body source: `.github/PULL_REQUEST_TEMPLATE.md` (required)
 - merge gate checklist: `.github/MERGE_CHECKLIST.md` (required)
 - reviewers/owners policy: `.github/CODEOWNERS`
-- before PR:
-  - `go test ./...` must pass
-  - `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` must pass
-- PR description must include:
-  - scope summary
-  - changed files
-  - verification commands and results
+
+### MASTER_SYNC_PROTOCOL (mandatory)
+The agent MUST sync with `origin/master` at three checkpoints. Skipping any of them is a process violation.
+
+1. **Before starting any task** — fetch and fast-forward `master`, then branch off:
+   ```bash
+   git checkout master
+   git fetch origin
+   git pull --ff-only origin master
+   git checkout -b ai/<name>
+   ```
+   Rationale: starting from a stale base guarantees a future rebase conflict and may duplicate work that already landed (e.g. another agent claiming the next free `TSK-NN` id).
+
+2. **Before opening a PR** — re-fetch and rebase the working branch onto fresh `origin/master`:
+   ```bash
+   git fetch origin
+   git rebase origin/master
+   # resolve conflicts deterministically, re-run verification, then:
+   git push --force-with-lease origin ai/<name>
+   ```
+   Always `--force-with-lease`, never plain `--force`. If conflicts arise, follow `MERGE_CONFLICT_PROTOCOL` below.
+
+3. **After the PR is merged** — return to `master` and update locally before offering further work:
+   ```bash
+   git checkout master
+   git pull --ff-only origin master
+   ```
+   The agent MUST proactively offer this switch to the user once the PR shows `merged: true`. Do not start the next task on a leftover feature branch.
+
+### MERGE_CONFLICT_PROTOCOL
+When `git rebase origin/master` reports conflicts:
+- Resolve each file deterministically — prefer master for cross-cutting policy/contract changes (e.g. contract-lint tags), apply branch-local deltas surgically on top.
+- If task ids collide (e.g. both branches created the same `TSK-NN`), the branch that landed first keeps the id; the rebasing branch renumbers to the next free id and updates every cross-reference (decision summary, EXEC_LOG, evidence refs, PR body).
+- Re-run the full verification baseline after every resolution batch (`go test`, `go build`, `mss-contract-lint`).
+- Never resolve conflicts by accepting one whole side blindly — review semantics file by file.
+
+### PR_PRECONDITIONS
+- working branch is rebased on the latest `origin/master` (no merge commits from `master` in branch history)
+- `go test ./...` passes
+- `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` passes
+- `go run ./cmd/mss-contract-lint --root . --mode short --format text` reports `violations=0`
+- PR description includes: scope summary, change map, verification commands and results, runtime-smoke evidence link when behavior changed
 
 ## DONE_CRITERIA
 - build_pass: true

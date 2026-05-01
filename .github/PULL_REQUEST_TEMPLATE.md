@@ -40,8 +40,10 @@ Describe *why* each change group exists and what behavior/process it affects.
   - 
 
 ## ✅ Verification
+- [ ] branch rebased on latest `origin/master` (`git fetch origin && git rebase origin/master`)
 - [ ] `go test ./...`
 - [ ] `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout`
+- [ ] `go run ./cmd/mss-contract-lint --root . --mode short --format text` (violations=0)
 - [ ] runtime check (if behavior changed)
 
 Verification output (short):
