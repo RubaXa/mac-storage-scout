@@ -46,7 +46,9 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 3. run verification again
 4. update docs/specs if behavior changed
 5. append Execution Log in the affected task spec file(s)
-6. commit + push
+6. create branch `ai/<name>`
+7. commit + push branch
+8. open pull request into `master`
 
 ## REQUIRED_COMMANDS
 ```bash
@@ -63,6 +65,18 @@ When behavior/UX/CLI changes:
 - update README.md
 - update matching spec file(s)
 - append/update Execution Log in affected `spec/tasks/*.md` with UTC timestamp
+
+## GIT_FLOW_POLICY
+- direct commits to `master`: forbidden
+- required branch naming: `ai/<name>`
+- required merge path: PR from `ai/<name>` into `master`
+- before PR:
+  - `go test ./...` must pass
+  - `go build -o ./bin/mss ./cmd/mss` must pass
+- PR description must include:
+  - scope summary
+  - changed files
+  - verification commands and results
 
 ## DONE_CRITERIA
 - build_pass: true
