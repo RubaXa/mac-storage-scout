@@ -16,10 +16,11 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 2. .ai/rules/go-qa.testing.md
 3. .ai/research/go-practices-evidence.md
 4. README.md
-5. spec/mac-storage-scout.spec.md
-6. spec/mac-storage-scout.output-format.source-of-truth.md
-7. spec/SESSION-HANDOFF.md
-8. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
+5. .agent-skill/SKILL.md (universal CLI skill — build/scan/delete contract)
+6. spec/mac-storage-scout.spec.md
+7. spec/mac-storage-scout.output-format.source-of-truth.md
+8. spec/SESSION-HANDOFF.md
+9. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
 
 ## AI_RULESET_LOCATION
 - root: `.ai/`
@@ -67,14 +68,14 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 9. open pull request into `master`
 
 ## REQUIRED_COMMANDS
+Run from the project root (path agnostic):
 ```bash
-cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
-go build -o ./bin/mss ./cmd/mss
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 go run ./cmd/mss-contract-lint --root . --mode short --format text
-./bin/mss scan --profile macos-core --threshold 500MB --top 5
-./bin/mss delete --dry-run <path> [path...]
-./bin/mss delete --yes <path> [path...]
+./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5
+./bin/mac-storage-scout delete --dry-run <path> [path...]
+./bin/mac-storage-scout delete --yes <path> [path...]
 ```
 
 ## COMMIT_GATES
@@ -97,7 +98,7 @@ When behavior/UX/CLI changes:
 - reviewers/owners policy: `.github/CODEOWNERS`
 - before PR:
   - `go test ./...` must pass
-  - `go build -o ./bin/mss ./cmd/mss` must pass
+  - `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` must pass
 - PR description must include:
   - scope summary
   - changed files

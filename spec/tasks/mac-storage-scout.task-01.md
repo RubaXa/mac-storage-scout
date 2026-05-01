@@ -10,7 +10,7 @@
 - **Deferred Runtime Scope**: Real filesystem traversal is deferred to TSK-02.
 - **Target Files**:
   - `go.mod` (Create)
-  - `cmd/mss/main.go` (Create)
+  - `cmd/mac-storage-scout/main.go` (Create)
   - `internal/mss/domain/mss_types.go` (Create)
   - `internal/mss/ports/mss_scan_orchestrator_port.go` (Create)
   - `internal/mss/ports/mss_filesystem_walker_port.go` (Create)
@@ -51,7 +51,7 @@
 - **Test Levels**: `unit`, `contract`
 - **Verification Commands**:
   - `go test ./...`
-  - `go build ./cmd/mss`
+  - `go build ./cmd/mac-storage-scout`
 - **Completion Rule**:
   - No TODO in port contracts.
   - Domain tests pass.
@@ -76,7 +76,7 @@
 - 2026-05-01T12:00:00Z: task initialized and scaffold created
 - 2026-05-01T12:00:00Z: files created/updated per target list
 - 2026-05-01T12:00:00Z: verification `go test ./...` -> PASS
-- 2026-05-01T12:00:00Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
+- 2026-05-01T12:00:00Z: verification `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` -> PASS
 
 ## EXEC_POINTER
 For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

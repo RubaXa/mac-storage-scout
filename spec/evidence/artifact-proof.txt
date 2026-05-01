@@ -1,3 +1,2 @@
-2026-05-01T11:28:09Z
--rwxr-xr-x@ 1 k.lebedev  staff   2.5M May  1 14:27 ./bin/mss
-26d6c8c76ea6d48ca463b2ca1406757587e9b53c62b2d799ab1f3553408c9275  ./bin/mss
+-rwxr-xr-x@ 1 k.lebedev  staff   2.6M May  1 18:57 ./bin/mac-storage-scout
+3fec3b83663d386645ab328db55a2499431369ccd865cf749853da21f0bd158f  ./bin/mac-storage-scout

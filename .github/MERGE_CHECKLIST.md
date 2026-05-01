@@ -8,7 +8,7 @@
 
 ## Required Validation
 - `go test ./...` passed.
-- `go build -o ./bin/mss ./cmd/mss` passed.
+- `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` passed.
 - Runtime validation included when behavior changed.
 
 ## Documentation Sync

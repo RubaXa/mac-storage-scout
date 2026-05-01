@@ -1,84 +1,80 @@
-# Task: [TSK-06] - Go DevGen/QA Ruleset + Contract Hardening + Test Expansion
+# Task: [TSK-06] - CLI Rename To `mac-storage-scout` + Universal Skill Docs
 
 ## 1. Meta & Traceability
-- **Purpose**: Adapt external TS-oriented agent contracts to Go, codify autonomous coding/testing rules under `.ai`, and align repository code/tests with the resulting contract style.
-- **Dependencies**: TSK-01, TSK-02, TSK-03, TSK-04, TSK-05
+- **Purpose**: Eliminate global binary name collisions by renaming runtime command from `mss` to `mac-storage-scout`; document universal skill usage for agent systems.
+- **Dependencies**: TSK-05
 - **Supporting Artifacts**:
-  - [../mac-storage-scout.spec.md](../mac-storage-scout.spec.md)
-  - [../mac-storage-scout.output-format.source-of-truth.md](../mac-storage-scout.output-format.source-of-truth.md)
-  - [../../AGENTS.md](../../AGENTS.md)
-  - [../../.ai/rules/go-devgen.contracts.md](../../.ai/rules/go-devgen.contracts.md)
-  - [../../.ai/rules/go-qa.testing.md](../../.ai/rules/go-qa.testing.md)
-- **Runtime Fidelity**: `contract-and-runtime`
-- **Deferred Runtime Scope**: none introduced.
+  - [mac-storage-scout.spec.md](../mac-storage-scout.spec.md)
+  - [README.md](../../README.md)
+  - [Session Handoff](../SESSION-HANDOFF.md)
+- **Runtime Fidelity**: `runtime-hook-required`
+- **Deferred Runtime Scope**: Release-packaged installer remains future work; source-build flow is canonical for now.
 - **Target Files**:
-  - `.ai/README.md` (Create)
-  - `.ai/rules/go-devgen.contracts.md` (Create)
-  - `.ai/rules/go-qa.testing.md` (Create)
-  - `.ai/research/go-practices-evidence.md` (Create)
-  - `.ai/checklists/go-change-checklist.md` (Create)
-  - `.ai/checklists/go-test-checklist.md` (Create)
+  - `cmd/mac-storage-scout/main.go` (Update)
+  - `internal/mss/adapters/report/mss_tree_text_report_adapter.go` (Update)
+  - `README.md` (Update)
   - `AGENTS.md` (Update)
-  - `AGETNS.md` (Update)
-  - `spec/README.md` (Update)
+  - `CLAUDE.md` (Update)
+  - `REVIEW.md` (Update)
   - `spec/SESSION-HANDOFF.md` (Update)
+  - `spec/ascii-ux-research.md` (Update)
   - `spec/mac-storage-scout.spec.md` (Update)
-  - production/test files aligned with new contract comments and test quality rules
-- **Traceability**:
-  - **Contracts**: [Root Output Rules](../mac-storage-scout.output-format.source-of-truth.md#canonical-rules)
-  - **Contracts**: [Delete Safety](../../AGENTS.md#hard_contracts)
+  - `.github/PULL_REQUEST_TEMPLATE.md` (Update)
+  - `.github/MERGE_CHECKLIST.md` (Update)
+  - `.agent-skill/SKILL.md` (Create)
+- **Target Test Files**:
+  - `internal/mss/adapters/report/mss_tree_text_report_adapter_test.go` (Update)
 
 ## 2. Acceptance Criteria (BDD Scenarios)
-**Feature**: Autonomous Go coding/testing governance
+**Feature**: Unique runtime command naming
 
-**Scenario**: Agent bootstrap loads `.ai` rules before implementation [`contract`]
-- **Given** a new autonomous coding session
-- **When** the session reads repo contracts
-- **Then** `.ai/rules` and `.ai/checklists` are part of mandatory read order
+**Scenario**: CLI usage outputs canonical command name
+- **Given** user runs command with invalid args
+- **When** usage text is printed
+- **Then** it references `mac-storage-scout scan` and `mac-storage-scout delete`
 
-**Scenario**: Production code is hardened with explicit contracts [`contract`]
-- **Given** core runtime modules
-- **When** they are updated
-- **Then** non-trivial logic is documented with machine-readable intent/contracts
-- **And** precondition errors are explicit and traceable
+**Scenario**: Agent skill docs are universal
+- **Given** Codex/Claude/OpenCode style shell runtime
+- **When** agent reads `.agent-skill/SKILL.md`
+- **Then** it can build and run `mac-storage-scout` without ecosystem-specific adapters
 
-**Scenario**: Test suite covers contract boundaries more fully [`contract`]
-- **Given** core adapters/orchestrator
-- **When** tests are executed
-- **Then** missing test surfaces are covered
-- **And** failure diagnostics follow clear got/want and scenario naming rules
+**Scenario**: Skill is path-agnostic and self-consistent
+- **Given** an agent that cloned the repo to an arbitrary path
+- **When** it follows SKILL.md linearly
+- **Then** every step (build → verify → dry-run → real delete) succeeds without local-path edits
+
+**Scenario**: README opens with a depersonalized hero example
+- **Given** a new reader landing on `README.md`
+- **When** they scroll past the title
+- **Then** the first content block is a styled scan example with no personal identifiers
 
 ## 3. Verification Strategy
-- **Test Levels**: `unit`, `integration`, `contract`
+- **Test Levels**: `unit`, `integration`, `runtime-smoke`
 - **Verification Commands**:
   - `go test ./...`
-  - `go build -o ./bin/mss ./cmd/mss`
-  - `./bin/mss scan --profile macos-core --threshold 500MB --top 5`
-  - `./bin/mss delete --dry-run <path>` and `./bin/mss delete --yes <path>` on safe temp fixture
+  - `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout`
+  - `./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5`
+- **Completion Rule**:
+  - Tests and build pass.
+  - Scan runs with renamed binary.
 
 ## 4. Execution Log (AI-to-AI)
 ## EXEC_LOG_META
 - task_id: TSK-06
 - status: done
 - canonical_log: self (this task file)
-- evidence_refs:
-  - ../evidence/task-06-go-rules-proof.txt
 
 ## EXEC_TIMELINE
-- 2026-05-01T14:19:39Z: task initialized, branch `ai/go-devgen-qa-rules` active, baseline verification completed
-- 2026-05-01T14:19:39Z: `.ai` rules/checklists/research files created and wired into agent/spec docs
-- 2026-05-01T14:19:39Z: production contract hardening completed (`cmd`, `domain`, `app`, `adapters`, `ports`)
-- 2026-05-01T14:19:39Z: test expansion completed (`fs`, `progress`, `app`, `integration`) and legacy tests aligned to QA rules
-- 2026-05-01T14:19:39Z: verification `go test ./...` -> PASS
-- 2026-05-01T14:19:39Z: verification `go test -count=1 ./...` -> PASS
-- 2026-05-01T14:19:39Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
-- 2026-05-01T14:19:39Z: verification `./bin/mss scan --profile macos-core --threshold 500MB --top 5 --no-progress` -> PASS
-- 2026-05-01T14:19:39Z: verification delete flow (`--dry-run` and `--yes` on temp fixture) -> PASS
-- 2026-05-01T15:00:05Z: added explicit `@consumer` tags to contract roots (ports/adapters/orchestrator/domain) and updated rules/spec references
-- 2026-05-01T15:00:05Z: verification `go test ./...` after `@consumer` pass -> PASS
-- 2026-05-01T15:07:18Z: implemented `mss-contract-lint` AST/regexp CLI and generated full entity index report
-- 2026-05-01T15:07:18Z: contract tag coverage raised to zero violations (`scanned=74, violations=0`)
-- 2026-05-01T15:07:18Z: added commit gate `.githooks/pre-commit` and enforced `core.hooksPath=.githooks`
+- 2026-05-01T15:53:15Z: renamed CLI command references and binary paths to `mac-storage-scout`.
+- 2026-05-01T15:53:15Z: moved entrypoint directory to `cmd/mac-storage-scout`.
+- 2026-05-01T15:53:15Z: added universal skill doc at `.agent-skill/SKILL.md`.
+- 2026-05-01T15:53:15Z: synced README, AGENTS, SESSION-HANDOFF, and root spec references.
+- 2026-05-01T18:30:00Z: cleaned residual `mss` references in `.github/PULL_REQUEST_TEMPLATE.md`, `.github/MERGE_CHECKLIST.md`, `spec/ascii-ux-research.md`.
+- 2026-05-01T18:35:00Z: rewrote `README.md` to lead with a single depersonalized hero example; removed personal `/Users/k.lebedev/...` paths from build/test section.
+- 2026-05-01T18:40:00Z: hardened `.agent-skill/SKILL.md` — removed personal install path, added `Invocation Convention` section, unified all examples to `./bin/mac-storage-scout` form, added depersonalized worked example.
+- 2026-05-01T18:42:00Z: depersonalized `Canonical Paths` and `Standard Commands` blocks in `spec/SESSION-HANDOFF.md`.
+- 2026-05-01T18:45:00Z: registered SKILL.md in `AGENTS.md::AUTHORITATIVE_READ_ORDER` and `CLAUDE.md::REQUIRED_BOOTSTRAP`.
+- 2026-05-01T18:50:00Z: runtime-smoke verified — followed SKILL.md end-to-end (build → verify scan → dry-run → protected-path refusal → real delete on synthetic dir); all six steps PASS.
 
 ## EXEC_POINTER
 For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

@@ -8,24 +8,23 @@ Primary goal: дать оператору доказуемый и компакт
 ## 2. DX & Quick Start (Target Language: Go)
 
 ```bash
-# Build a tiny single-binary CLI
-cd /Users/k.lebedev/Developer/mac-storage-scout
-go build -o ./bin/mss ./cmd/mss
+# Build a tiny single-binary CLI (run from the project root)
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
 # Scan key macOS paths with default threshold 500MB
-./bin/mss scan \
+./bin/mac-storage-scout scan \
   --threshold 500MB \
   --top 5 \
   --profile macos-core
 
 # Same scan using allocated blocks (inode-reported)
-./bin/mss scan \
+./bin/mac-storage-scout scan \
   --threshold 500MB \
   --size-mode allocated \
   --profile macos-core
 
 # Same scan in plain ASCII mode (no emoji glyphs)
-./bin/mss scan \
+./bin/mac-storage-scout scan \
   --threshold 500MB \
   --top 5 \
   --plain \
@@ -51,7 +50,7 @@ go build -o ./bin/mss ./cmd/mss
 
 ```bash
 # Intent: stream progress in live terminal while scanning.
-./bin/mss scan --threshold 500MB --progress
+./bin/mac-storage-scout scan --threshold 500MB --progress
 # progress line example:
 # scanned: dirs=18421 files=392114 bytes=216.4GB queue=287 errors=14 elapsed=00:01:12
 ```
@@ -123,7 +122,7 @@ Main flow:
 - **Type:** Port (Interface)
 - **Purpose:** Оркестрировать полный scan lifecycle (config -> walk -> aggregate -> render).
 - **Consumer:**
-  - Internal: `cmd/mss/main.go`
+  - Internal: `cmd/mac-storage-scout/main.go`
 - **Supporting Artifacts:**
   - `spec/mac-storage-scout.macos-performance.reference.md`
   - `spec/mac-storage-scout.output-format.source-of-truth.md`
@@ -183,7 +182,7 @@ Main flow:
 - **Type:** Port (Interface)
 - **Purpose:** Сериализовать агрегированное дерево в читаемый ASCII report.
 - **Consumer:**
-  - Internal: `cmd/mss/main.go`
+  - Internal: `cmd/mac-storage-scout/main.go`
 - **Supporting Artifacts:**
   - `spec/mac-storage-scout.output-format.source-of-truth.md`
 - **Verification Surface:** `contract-only`
@@ -303,7 +302,7 @@ mac-storage-scout/
 ```
 
 **File Mapping:**
-- `cmd/mss/main.go`: CLI entrypoint, flags parsing, wire-up of adapters.
+- `cmd/mac-storage-scout/main.go`: CLI entrypoint, flags parsing, wire-up of adapters.
 - `internal/mss/app/mss_scan_orchestrator.go`: orchestration flow and lifecycle.
 - `internal/mss/ports/*.go`: strict contracts for scanner/aggregator/progress/report.
 - `internal/mss/adapters/fs/*.go`: runtime filesystem integration.
@@ -329,6 +328,8 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - implemented_in: `TSK-06`
 - D-006: Contract comments and non-trivial control-flow anchors are enforced for runtime-critical modules.
   - implemented_in: `TSK-06`
+- D-007: Runtime command name is `mac-storage-scout` (no default `mss` alias) to prevent global binary name collisions in agent environments.
+  - implemented_in: `TSK-07`
 
 ### Invalid / Reverted Decisions
 - R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.

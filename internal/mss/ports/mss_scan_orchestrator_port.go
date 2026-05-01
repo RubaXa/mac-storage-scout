@@ -10,12 +10,12 @@ import (
 // MssScanOrchestratorPort coordinates walk, aggregation, and final report inputs.
 //
 // @purpose Define orchestration boundary for scan lifecycle.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 type MssScanOrchestratorPort interface {
 	// Run executes scan lifecycle from traversal through aggregation.
 	//
 	// @purpose Provide one contract entrypoint for scan orchestration.
-	// @consumer cmd/mss/main.go
+	// @consumer cmd/mac-storage-scout/main.go
 	// @param ctx Cancellation and deadline propagation context.
 	// @param cfg Scan configuration.
 	// @returns Aggregated roots, counters snapshot, and optional execution error.

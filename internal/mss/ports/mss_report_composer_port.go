@@ -10,12 +10,12 @@ import (
 // MssReportComposerPort renders aggregated roots into user-facing output.
 //
 // @purpose Define report rendering boundary for CLI output.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 type MssReportComposerPort interface {
 	// Render writes sectioned report output from aggregated roots.
 	//
 	// @purpose Serialize contract-compliant report to output writer.
-	// @consumer cmd/mss/main.go
+	// @consumer cmd/mac-storage-scout/main.go
 	// @param w Output stream.
 	// @param roots Aggregated roots to render.
 	// @param cfg Scan configuration affecting report style.

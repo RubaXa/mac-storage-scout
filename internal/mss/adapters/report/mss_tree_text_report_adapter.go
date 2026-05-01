@@ -13,14 +13,14 @@ import (
 // MssTreeTextReportAdapter renders threshold-aware sections to text output.
 //
 // @purpose Serialize aggregated nodes into deterministic report sections.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 // @invariant Other bucket shape stays consistent: top-N, rest, types.
 // @implements {MssReportComposerPort} internal/mss/ports/mss_report_composer_port.go
 type MssTreeTextReportAdapter struct{}
 
 // @see {MssReportComposerPort#Render} internal/mss/ports/mss_report_composer_port.go
 // @purpose Render roots into terminal report output.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 // @pre w is non-nil.
 // @param w Output writer.
 // @param roots Aggregated roots.
@@ -35,11 +35,11 @@ func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, 
 	// START_RENDER_HEADER
 	style := renderStyle{emoji: !cfg.PlainOutput}
 	if style.emoji {
-		fmt.Fprintf(w, "┌─ 🛰️  mss :: mac-storage-scout\n")
+		fmt.Fprintf(w, "┌─ 🛰️  mac-storage-scout\n")
 		fmt.Fprintf(w, "│  🎚️  threshold: %s | 🔝 top: %d | 📐 size-mode: %s\n", domain.MssHumanBytes(cfg.ThresholdBytes), cfg.TopN, cfg.SizeMode)
 		fmt.Fprintf(w, "└─ 🧭 sections: %d\n\n", len(roots))
 	} else {
-		fmt.Fprintf(w, "mss :: mac-storage-scout\n")
+		fmt.Fprintf(w, "mac-storage-scout\n")
 		fmt.Fprintf(w, "threshold: %s | top: %d | size-mode: %s\n", domain.MssHumanBytes(cfg.ThresholdBytes), cfg.TopN, cfg.SizeMode)
 		fmt.Fprintf(w, "sections: %d\n\n", len(roots))
 	}

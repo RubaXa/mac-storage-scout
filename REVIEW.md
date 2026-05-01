@@ -123,7 +123,7 @@ When touching aggregation/report code, verify:
 ## Test and Evidence Requirements for Review Approval
 If behavior changed in runtime code, review should demand evidence:
 - `go test ./...` passes
-- `go build -o ./bin/mss ./cmd/mss` passes
+- `go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout` passes
 - runtime scan sample validates output shape
 - delete flow sample validates dry-run and guarded behavior (when delete logic touched)
 
@@ -138,7 +138,7 @@ Preferred evidence files:
 Missing or stale evidence is not always a code bug, but it is a release-readiness risk and should be called out.
 
 ## Diff-to-Risk Mapping (Where to Focus First)
-- `cmd/mss/main.go`: CLI contract, safety gates, flag semantics
+- `cmd/mac-storage-scout/main.go`: CLI contract, safety gates, flag semantics
 - `internal/mss/adapters/fs/*`: traversal safety, symlink policy, size semantics, error tolerance
 - `internal/mss/app/mss_scan_orchestrator.go`: lifecycle correctness, queue/event/counter handling
 - `internal/mss/adapters/aggregate/*`: threshold split and deterministic output semantics
@@ -171,9 +171,9 @@ Examples:
 ```bash
 cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
-go build -o ./bin/mss ./cmd/mss
-./bin/mss scan --profile macos-core --threshold 500MB --top 5 --no-progress
-./bin/mss delete --dry-run <path> [path...]
+go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
+./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5 --no-progress
+./bin/mac-storage-scout delete --dry-run <path> [path...]
 ```
 
 If delete code changed, include explicit deny-case checks for protected paths.

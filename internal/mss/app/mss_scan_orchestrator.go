@@ -15,7 +15,7 @@ import (
 // MssScanOrchestrator wires walker, aggregator, and progress lifecycle.
 //
 // @purpose Coordinate full scan execution from walk events to aggregated roots.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 // @invariant Non-fatal runtime errors do not crash orchestration when adapters follow contracts.
 // @implements {MssScanOrchestratorPort} internal/mss/ports/mss_scan_orchestrator_port.go
 type MssScanOrchestrator struct {
@@ -26,7 +26,7 @@ type MssScanOrchestrator struct {
 
 // @see {MssScanOrchestratorPort#Run} internal/mss/ports/mss_scan_orchestrator_port.go
 // @purpose Run scan orchestration and return aggregated roots.
-// @consumer cmd/mss/main.go
+// @consumer cmd/mac-storage-scout/main.go
 // @pre Walker and Aggregator are configured.
 // @pre ThresholdBytes > 0, TopN >= 1, and at least one path is configured.
 // @param ctx Execution context.

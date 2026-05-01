@@ -28,7 +28,7 @@
 
 6. Single binary build — PASS
 - Evidence: `spec/evidence/artifact-proof.txt`
-- Binary: `./bin/mss`, size ~2.5MB, SHA-256 recorded.
+- Binary: `./bin/mac-storage-scout`, size ~2.5MB, SHA-256 recorded.
 
 7. Tests and build pass — PASS
 - Evidence: `spec/evidence/build-test-proof.txt`
