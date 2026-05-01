@@ -9,6 +9,7 @@ import (
 
 // MssReportComposerPort renders aggregated roots into user-facing output.
 //
+// @purpose Define report rendering boundary for CLI output.
 // @consumer cmd/mss/main.go
 type MssReportComposerPort interface {
 	// Render writes sectioned report output from aggregated roots.

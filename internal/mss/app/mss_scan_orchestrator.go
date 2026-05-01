@@ -25,8 +25,13 @@ type MssScanOrchestrator struct {
 }
 
 // @see {MssScanOrchestratorPort#Run} internal/mss/ports/mss_scan_orchestrator_port.go
+// @purpose Run scan orchestration and return aggregated roots.
+// @consumer cmd/mss/main.go
 // @pre Walker and Aggregator are configured.
 // @pre ThresholdBytes > 0, TopN >= 1, and at least one path is configured.
+// @param ctx Execution context.
+// @param cfg Scan configuration.
+// @returns Aggregated roots, counters, and optional execution error.
 // @post Returns roots aggregated from all emitted walk events.
 // @post Progress goroutine is always stopped before return.
 func (o *MssScanOrchestrator) Run(ctx context.Context, cfg domain.MssScanConfig) ([]*domain.MssNode, domain.MssCounters, error) {
@@ -84,6 +89,13 @@ func (o *MssScanOrchestrator) Run(ctx context.Context, cfg domain.MssScanConfig)
 	return roots, walkerCounters, nil
 }
 
+// mssValidateOrchestratorConfig validates orchestrator dependencies and cfg.
+//
+// @purpose Fail fast on invalid orchestration preconditions.
+// @consumer MssScanOrchestrator.Run.
+// @param o Orchestrator instance.
+// @param cfg Scan configuration.
+// @returns Validation error when preconditions are broken.
 func mssValidateOrchestratorConfig(o *MssScanOrchestrator, cfg domain.MssScanConfig) error {
 	if o == nil {
 		return fmt.Errorf("[MssScanOrchestrator.Run] orchestrator is nil")

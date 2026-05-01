@@ -9,6 +9,7 @@ import (
 
 // MssScanOrchestratorPort coordinates walk, aggregation, and final report inputs.
 //
+// @purpose Define orchestration boundary for scan lifecycle.
 // @consumer cmd/mss/main.go
 type MssScanOrchestratorPort interface {
 	// Run executes scan lifecycle from traversal through aggregation.

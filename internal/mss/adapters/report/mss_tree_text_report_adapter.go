@@ -19,7 +19,13 @@ import (
 type MssTreeTextReportAdapter struct{}
 
 // @see {MssReportComposerPort#Render} internal/mss/ports/mss_report_composer_port.go
+// @purpose Render roots into terminal report output.
+// @consumer cmd/mss/main.go
 // @pre w is non-nil.
+// @param w Output writer.
+// @param roots Aggregated roots.
+// @param cfg Scan configuration.
+// @returns Render error.
 // @post Report header and every root section are emitted in deterministic order.
 func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, cfg domain.MssScanConfig) error {
 	if w == nil {
@@ -56,10 +62,20 @@ func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, 
 	return nil
 }
 
+// renderStyle controls output visual mode.
+//
+// @purpose Keep style switch explicit between emoji and plain render.
+// @consumer MssTreeTextReportAdapter rendering methods.
 type renderStyle struct {
 	emoji bool
 }
 
+// printNodeChildren renders node subtree and optional other block.
+//
+// @purpose Serialize nested children with deterministic tree formatting.
+// @consumer MssTreeTextReportAdapter.Render.
+// @param w Output writer.
+// @param n Node to render.
 func (a *MssTreeTextReportAdapter) printNodeChildren(w io.Writer, n *domain.MssNode, indent string, threshold int64, style renderStyle) {
 	count := len(n.Children)
 	for i, c := range n.Children {
@@ -152,6 +168,13 @@ func (a *MssTreeTextReportAdapter) printNodeChildren(w io.Writer, n *domain.MssN
 	// END_RENDER_OTHER_BLOCK
 }
 
+// padRight fills strings with dots for aligned text output.
+//
+// @purpose Improve human scan readability of report lines.
+// @consumer MssTreeTextReportAdapter printing helpers.
+// @param s Input label.
+// @param width Target width.
+// @returns Padded or unchanged label.
 func padRight(s string, width int) string {
 	if utf8.RuneCountInString(s) >= width {
 		return s

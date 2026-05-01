@@ -9,6 +9,7 @@ import (
 
 // MssProgressEmitterPort starts and stops live progress rendering.
 //
+// @purpose Define progress lifecycle boundary for scan orchestration.
 // @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssProgressEmitterPort interface {
 	// Start begins progress rendering and returns a stop callback.

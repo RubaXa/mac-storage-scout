@@ -1,17 +1,25 @@
 # Contract Lint Checklist
 
-1. Run linter on production code:
-   - `go run ./cmd/mss-contract-lint --root . --format text`
-2. If needed, include tests too:
-   - `go run ./cmd/mss-contract-lint --root . --include-tests --format text`
-3. For agent handoff evidence, export markdown report:
-   - `go run ./cmd/mss-contract-lint --root . --format markdown > spec/evidence/contract-lint-entity-index.md`
-4. For API-only checks, use exported mode:
-   - `go run ./cmd/mss-contract-lint --root . --exported-only --format text`
-5. Interpretation:
-   - `error`: required tags missing (`@purpose`, `@consumer`, conditional `@param`, `@returns`).
-   - `warn`: required tags missing, therefore full contract recheck required (`@pre`, `@post`, `@invariant`, `@implements`, `@see`).
-6. Fix workflow:
-   - Address all `error` findings first.
-   - Re-run linter until `errors=0`.
-   - Then optionally refine optional tags where warnings suggested full recheck.
+## Modes
+- `--mode short`: only problematic entities.
+- `--mode detailed`: all entities with explicit confirmation:
+  - required tags for this entity
+  - present tags detected
+  - missing required tags
+  - findings (if any)
+
+## Commands
+1. Production, short report:
+   - `go run ./cmd/mss-contract-lint --root . --mode short --format text`
+2. Production, full confirmation report:
+   - `go run ./cmd/mss-contract-lint --root . --mode detailed --format text`
+3. Markdown entity index (full):
+   - `go run ./cmd/mss-contract-lint --root . --mode detailed --format markdown > spec/evidence/contract-lint-entity-index.md`
+4. Include tests if needed:
+   - `go run ./cmd/mss-contract-lint --root . --include-tests --mode detailed --format text`
+5. Exported API focus:
+   - `go run ./cmd/mss-contract-lint --root . --exported-only --mode short --format text`
+
+## Severity semantics
+- `error`: required tags missing (`@purpose`, `@consumer`, conditional `@param`, `@returns`).
+- `warn`: required tags missing; full contract recheck suggested (`@pre`, `@post`, `@invariant`, `@implements`, `@see`).

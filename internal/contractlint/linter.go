@@ -12,12 +12,20 @@ import (
 	"strings"
 )
 
+// Config defines linter execution options.
+//
+// @purpose Configure scope and filtering behavior for contract lint runs.
+// @consumer Run entrypoint.
 type Config struct {
 	Root         string
 	IncludeTests bool
 	ExportedOnly bool
 }
 
+// EntityKind identifies parsed entity category.
+//
+// @purpose Distinguish functions, methods, types, and interface methods.
+// @consumer Entity indexing and report rendering.
 type EntityKind string
 
 const (
@@ -27,6 +35,10 @@ const (
 	EntityInterfaceMethod EntityKind = "interface-method"
 )
 
+// Entity describes one parsed top-level declaration.
+//
+// @purpose Carry AST-derived metadata used for contract validation.
+// @consumer checkEntity validator and report output formatters.
 type Entity struct {
 	Kind        EntityKind
 	Name        string
@@ -37,6 +49,10 @@ type Entity struct {
 	Comment     string
 }
 
+// Severity defines finding severity level.
+//
+// @purpose Distinguish blocking errors from advisory warnings.
+// @consumer Report rendering and exit-code policy.
 type Severity string
 
 const (
@@ -44,19 +60,33 @@ const (
 	SeverityWarn  Severity = "warn"
 )
 
+// Finding represents one contract validation issue.
+//
+// @purpose Store machine-readable lint violation details.
+// @consumer Entity report output.
 type Finding struct {
 	Severity Severity
 	Code     string
 	Message  string
 }
 
+// EntityReport contains validation details for one entity.
+//
+// @purpose Preserve required/present/missing tags and findings per entity.
+// @consumer Final lint report and detailed mode.
 type EntityReport struct {
 	Entity        Entity
+	PresentTags   []string
+	RequiredTags  []string
 	RequiredMiss  []string
 	OptionalNotes []string
 	Findings      []Finding
 }
 
+// Report is aggregate output of one lint run.
+//
+// @purpose Summarize lint counters and per-entity findings.
+// @consumer CLI output and automation exit handling.
 type Report struct {
 	Entities     []EntityReport
 	ScannedCount int
@@ -67,6 +97,12 @@ type Report struct {
 
 var tagRegex = regexp.MustCompile(`(?m)@([a-zA-Z][a-zA-Z0-9_-]*)`)
 
+// Run executes contract lint analysis.
+//
+// @purpose Analyze top-level entities and validate required contract tags.
+// @consumer cmd/mss-contract-lint CLI.
+// @param cfg Linter configuration.
+// @returns Lint report and optional execution error.
 func Run(cfg Config) (Report, error) {
 	root := strings.TrimSpace(cfg.Root)
 	if root == "" {
@@ -124,6 +160,12 @@ func Run(cfg Config) (Report, error) {
 	}, nil
 }
 
+// collectEntities parses Go files and indexes top-level entities.
+//
+// @purpose Build analyzable entity list from AST declarations.
+// @consumer Run analysis pipeline.
+// @param root Project root directory.
+// @returns Indexed entities and optional parse error.
 func collectEntities(root string, includeTests bool) ([]Entity, error) {
 	fset := token.NewFileSet()
 	entities := make([]Entity, 0, 128)
@@ -240,6 +282,12 @@ func collectEntities(root string, includeTests bool) ([]Entity, error) {
 	return entities, nil
 }
 
+// checkEntity validates required tags for one entity.
+//
+// @purpose Apply mandatory and conditional contract checks to entity comments.
+// @consumer Run analysis pipeline.
+// @param e One parsed entity.
+// @returns Entity report with findings.
 func checkEntity(e Entity) EntityReport {
 	r := EntityReport{Entity: e}
 	tags := extractTags(e.Comment)
@@ -251,6 +299,10 @@ func checkEntity(e Entity) EntityReport {
 	if e.ReturnCount > 0 {
 		required = append(required, "returns")
 	}
+	r.RequiredTags = append(r.RequiredTags, required...)
+
+	allTagNames := sortedTagNames(tags)
+	r.PresentTags = append(r.PresentTags, allTagNames...)
 
 	for _, need := range required {
 		if tags[need] {
@@ -287,6 +339,12 @@ func checkEntity(e Entity) EntityReport {
 	return r
 }
 
+// fieldsCount counts function parameter/result fields.
+//
+// @purpose Determine whether conditional tags @param/@returns are required.
+// @consumer Entity parser and validator.
+// @param fl Field list to count.
+// @returns Number of fields.
 func fieldsCount(fl *ast.FieldList) int {
 	if fl == nil {
 		return 0
@@ -302,6 +360,12 @@ func fieldsCount(fl *ast.FieldList) int {
 	return count
 }
 
+// receiverName extracts receiver type label.
+//
+// @purpose Build method entity naming in Receiver.Method form.
+// @consumer collectEntities parser.
+// @param fl Receiver field list.
+// @returns Receiver type name or fallback.
 func receiverName(fl *ast.FieldList) string {
 	if fl == nil || len(fl.List) == 0 {
 		return "unknown"
@@ -318,6 +382,12 @@ func receiverName(fl *ast.FieldList) string {
 	return "unknown"
 }
 
+// commentText normalizes doc comment group text.
+//
+// @purpose Provide stable comment input for tag extraction.
+// @consumer collectEntities parser.
+// @param cg AST comment group.
+// @returns Trimmed comment text.
 func commentText(cg *ast.CommentGroup) string {
 	if cg == nil {
 		return ""
@@ -325,6 +395,12 @@ func commentText(cg *ast.CommentGroup) string {
 	return strings.TrimSpace(cg.Text())
 }
 
+// extractTags parses @tag names from comments.
+//
+// @purpose Detect contract tags for required-field checks.
+// @consumer checkEntity validator.
+// @param comment Raw comment text.
+// @returns Set of discovered tags.
 func extractTags(comment string) map[string]bool {
 	out := map[string]bool{}
 	if strings.TrimSpace(comment) == "" {
@@ -340,6 +416,30 @@ func extractTags(comment string) map[string]bool {
 	return out
 }
 
+// sortedTagNames returns deterministic tag listing.
+//
+// @purpose Produce stable reporting for present tags.
+// @consumer checkEntity and report formatters.
+// @param tags Tag set.
+// @returns Sorted tag names.
+func sortedTagNames(tags map[string]bool) []string {
+	if len(tags) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(tags))
+	for k := range tags {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// isExportedEntity checks exported visibility by naming convention.
+//
+// @purpose Support exported-only linter mode.
+// @consumer Run filtering stage.
+// @param e Parsed entity.
+// @returns True when entity is exported.
 func isExportedEntity(e Entity) bool {
 	name := e.Name
 	if dot := strings.LastIndex(name, "."); dot >= 0 {

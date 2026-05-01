@@ -22,13 +22,23 @@ import (
 // @implements {MssFilesystemWalkerPort} internal/mss/ports/mss_filesystem_walker_port.go
 type MssGoFsWalkerAdapter struct{}
 
+// mssQueueItem carries pending traversal item state.
+//
+// @purpose Transport path/root pair through worker queue.
+// @consumer MssGoFsWalkerAdapter.Walk queue processing.
 type mssQueueItem struct {
 	path string
 	root string
 }
 
 // @see {MssFilesystemWalkerPort#Walk} internal/mss/ports/mss_filesystem_walker_port.go
+// @purpose Walk configured roots and emit normalized scan events.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 // @pre cfg.Paths contains at least one path.
+// @param ctx Cancellation context.
+// @param cfg Scan configuration.
+// @param emit Event sink callback.
+// @returns Traversal counters.
 // @post Returns counters collected from walk lifecycle.
 func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfig, emit func(domain.MssWalkEvent)) domain.MssCounters {
 	counters := domain.MssCounters{StartedAt: time.Now()}
@@ -105,6 +115,12 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 	return counters
 }
 
+// walkPath processes one queued path.
+//
+// @purpose Emit one path and enqueue descendants under walker policy.
+// @consumer MssGoFsWalkerAdapter.Walk worker loop.
+// @param ctx Cancellation context.
+// @param cfg Scan configuration.
 func (a *MssGoFsWalkerAdapter) walkPath(
 	ctx context.Context,
 	cfg domain.MssScanConfig,
@@ -205,6 +221,12 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 	}
 }
 
+// mssExtOf extracts normalized file extension.
+//
+// @purpose Classify files for type aggregation.
+// @consumer walkPath file event emission.
+// @param name File name.
+// @returns Extension or no-ext marker.
 func mssExtOf(name string) string {
 	ext := strings.ToLower(filepath.Ext(name))
 	if ext == "" {
@@ -213,6 +235,12 @@ func mssExtOf(name string) string {
 	return ext
 }
 
+// mssExpandPath resolves home and relative paths.
+//
+// @purpose Normalize input roots before traversal.
+// @consumer MssGoFsWalkerAdapter.Walk root setup.
+// @param p Input path.
+// @returns Expanded absolute or original path.
 func mssExpandPath(p string) string {
 	if p == "~" || strings.HasPrefix(p, "~/") {
 		h, err := os.UserHomeDir()

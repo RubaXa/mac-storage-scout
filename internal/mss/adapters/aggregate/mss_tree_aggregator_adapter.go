@@ -17,7 +17,12 @@ import (
 type MssTreeAggregatorAdapter struct{}
 
 // @see {MssNodeAggregatorPort#BuildTree} internal/mss/ports/mss_node_aggregator_port.go
+// @purpose Aggregate events into deterministic threshold-aware roots.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 // @pre cfg.TopN >= 1 and cfg.ThresholdBytes > 0.
+// @param events Walk events from filesystem walker.
+// @param cfg Scan configuration.
+// @returns Aggregated roots and optional validation/aggregation error.
 // @post Every returned root preserves explicit-vs-other threshold contract.
 func (a *MssTreeAggregatorAdapter) BuildTree(events []domain.MssWalkEvent, cfg domain.MssScanConfig) ([]*domain.MssNode, error) {
 	if cfg.TopN < 1 {
@@ -90,6 +95,12 @@ func (a *MssTreeAggregatorAdapter) BuildTree(events []domain.MssWalkEvent, cfg d
 	return roots, nil
 }
 
+// dedupChildren removes duplicate nodes by path.
+//
+// @purpose Keep parent child list unique by node path.
+// @consumer BuildTree assembly.
+// @param in Child node list.
+// @returns Deduplicated child node list.
 func dedupChildren(in []*domain.MssNode) []*domain.MssNode {
 	seen := map[string]bool{}
 	out := make([]*domain.MssNode, 0, len(in))
@@ -103,6 +114,12 @@ func dedupChildren(in []*domain.MssNode) []*domain.MssNode {
 	return out
 }
 
+// recomputeSizes recalculates recursive directory sizes.
+//
+// @purpose Recompute total size from file leaves for deterministic totals.
+// @consumer BuildTree post-assembly normalization.
+// @param n Root node for recursive recomputation.
+// @returns Recomputed size for node.
 func recomputeSizes(n *domain.MssNode) int64 {
 	if n.Kind == domain.MssEntryKindFile {
 		if n.SizeBytes < 0 {
@@ -118,6 +135,11 @@ func recomputeSizes(n *domain.MssNode) int64 {
 	return total
 }
 
+// sortNodes sorts nodes by size desc and name asc.
+//
+// @purpose Enforce stable output order contract.
+// @consumer BuildTree and threshold split flow.
+// @param nodes Node list to sort in place.
 func sortNodes(nodes []*domain.MssNode) {
 	sort.SliceStable(nodes, func(i, j int) bool {
 		if nodes[i].SizeBytes == nodes[j].SizeBytes {
@@ -127,6 +149,13 @@ func sortNodes(nodes []*domain.MssNode) {
 	})
 }
 
+// applyThreshold splits children into explicit and other buckets.
+//
+// @purpose Preserve threshold contract for report generation.
+// @consumer BuildTree threshold aggregation phase.
+// @param n Node whose children are split.
+// @param threshold Byte threshold for explicit output.
+// @param topN Max visible items in other top block.
 func applyThreshold(n *domain.MssNode, threshold int64, topN int) {
 	if n.Kind == domain.MssEntryKindFile {
 		return
@@ -196,6 +225,12 @@ func applyThreshold(n *domain.MssNode, threshold int64, topN int) {
 	n.Other = other
 }
 
+// collectTypesFromNodes aggregates extension stats from subtree.
+//
+// @purpose Build types section payload for other bucket.
+// @consumer applyThreshold type aggregation.
+// @param nodes Nodes to scan for file extensions.
+// @param types Mutable extension stats accumulator.
 func collectTypesFromNodes(nodes []*domain.MssNode, types map[string]domain.MssExtStat) {
 	for _, n := range nodes {
 		if n.Kind == domain.MssEntryKindFile {

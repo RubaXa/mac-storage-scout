@@ -5,6 +5,9 @@ package domain
 import "time"
 
 // MssSizeMode defines how file size is accounted during scans.
+//
+// @purpose Declare supported file-size accounting modes.
+// @consumer cmd/mss/main.go
 type MssSizeMode string
 
 const (
@@ -16,6 +19,7 @@ const (
 
 // MssScanConfig defines scan execution parameters.
 //
+// @purpose Carry scan runtime parameters across adapters.
 // @consumer cmd/mss/main.go
 type MssScanConfig struct {
 	Paths          []string
@@ -30,6 +34,7 @@ type MssScanConfig struct {
 
 // MssCounters tracks scan progress and completion statistics.
 //
+// @purpose Carry runtime counters for progress and final summary.
 // @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssCounters struct {
 	DirsScanned  int64
@@ -41,6 +46,9 @@ type MssCounters struct {
 }
 
 // MssEntryKind describes filesystem entry kind.
+//
+// @purpose Classify entries for aggregation/reporting logic.
+// @consumer internal/mss/adapters/fs/mss_go_fs_walker_adapter.go
 type MssEntryKind string
 
 const (
@@ -49,6 +57,9 @@ const (
 )
 
 // MssWalkEntry is one filesystem entry emitted by walker.
+//
+// @purpose Represent normalized walker payload for aggregation.
+// @consumer internal/mss/adapters/fs/mss_go_fs_walker_adapter.go
 type MssWalkEntry struct {
 	Path       string
 	ParentPath string
@@ -60,6 +71,7 @@ type MssWalkEntry struct {
 
 // MssWalkEvent wraps a walk entry or a non-fatal traversal error.
 //
+// @purpose Preserve event or error boundary between walker and aggregator flow.
 // @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssWalkEvent struct {
 	Entry *MssWalkEntry
@@ -67,6 +79,9 @@ type MssWalkEvent struct {
 }
 
 // MssExtStat aggregates size and count per file extension.
+//
+// @purpose Carry extension aggregation stats for other/types block.
+// @consumer internal/mss/adapters/aggregate/mss_tree_aggregator_adapter.go
 type MssExtStat struct {
 	Ext       string
 	SizeBytes int64
@@ -74,6 +89,9 @@ type MssExtStat struct {
 }
 
 // MssOtherBucket summarizes items below threshold for one directory.
+//
+// @purpose Preserve small-item rollup structure for report contract.
+// @consumer internal/mss/adapters/aggregate/mss_tree_aggregator_adapter.go
 type MssOtherBucket struct {
 	Count       int
 	SizeBytes   int64
@@ -87,6 +105,7 @@ type MssOtherBucket struct {
 
 // MssNode is an aggregated filesystem tree node used by report rendering.
 //
+// @purpose Represent report-ready aggregated tree nodes.
 // @consumer internal/mss/adapters/report/mss_tree_text_report_adapter.go
 type MssNode struct {
 	Path      string

@@ -13,6 +13,8 @@ import (
 // @purpose Normalize CLI threshold values into positive byte counts.
 // @consumer cmd/mss/main.go
 // @pre input is non-empty and contains a supported suffix or positive integer.
+// @param input Human-readable or numeric size string.
+// @returns Parsed bytes and optional parse/validation error.
 // @post Returns bytes > 0 on success.
 func MssParseBytes(input string) (int64, error) {
 	raw := strings.TrimSpace(strings.ToUpper(input))

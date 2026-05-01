@@ -19,6 +19,10 @@ import (
 type MssAnsiProgressAdapter struct{}
 
 // @see {MssProgressEmitterPort#Start} internal/mss/ports/mss_progress_emitter_port.go
+// @purpose Start periodic tty progress renderer and return stop callback.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
+// @param counters Shared atomic counters pointer.
+// @returns Stop callback.
 // @post Returned stop function is safe to call once after Start.
 func (a *MssAnsiProgressAdapter) Start(counters *atomic.Pointer[domain.MssCounters]) func() {
 	if !mssIsTTY() {
@@ -64,6 +68,11 @@ func (a *MssAnsiProgressAdapter) Start(counters *atomic.Pointer[domain.MssCounte
 	}
 }
 
+// mssIsTTY checks whether stdout is interactive terminal.
+//
+// @purpose Disable progress rendering for non-interactive output streams.
+// @consumer MssAnsiProgressAdapter.Start.
+// @returns True when tty output is available.
 func mssIsTTY() bool {
 	fi, err := os.Stdout.Stat()
 	if err != nil {
