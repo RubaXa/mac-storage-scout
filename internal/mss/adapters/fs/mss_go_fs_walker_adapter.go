@@ -17,6 +17,7 @@ import (
 // MssGoFsWalkerAdapter traverses filesystem entries and emits metadata events.
 //
 // @purpose Provide runtime filesystem walking for scan orchestration.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 // @invariant Symlinks are not followed in default traversal mode.
 // @implements {MssFilesystemWalkerPort} internal/mss/ports/mss_filesystem_walker_port.go
 type MssGoFsWalkerAdapter struct{}

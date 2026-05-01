@@ -349,7 +349,7 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
    - `@implements {PortName} <path/to/port.file>`
 2. Для методов, реализующих контракт без изменения семантики, использовать `@see {PortName#MethodName} <path/to/port.file>`.
 3. Если метод меняет/расширяет поведение контракта, описывать новый контракт явно в comment block.
-   - For non-trivial logic prefer machine tags: `@purpose`, `@pre`, `@post`, `@invariant`.
+   - For non-trivial logic prefer machine tags: `@purpose`, `@consumer`, `@pre`, `@post`, `@invariant`.
    - For non-trivial control flow use intent anchors: `START_...` / `END_...`.
 4. Namespace discipline:
    - ключевые типы/файлы используют префикс `mss_` / `Mss...`.

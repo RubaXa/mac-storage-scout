@@ -12,6 +12,7 @@ import (
 // MssTreeAggregatorAdapter builds deterministic threshold-aware trees from walk events.
 //
 // @purpose Build deterministic threshold-aware trees for report rendering.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 // @implements {MssNodeAggregatorPort} internal/mss/ports/mss_node_aggregator_port.go
 type MssTreeAggregatorAdapter struct{}
 

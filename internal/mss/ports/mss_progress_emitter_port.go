@@ -8,6 +8,8 @@ import (
 )
 
 // MssProgressEmitterPort starts and stops live progress rendering.
+//
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssProgressEmitterPort interface {
 	Start(counters *atomic.Pointer[domain.MssCounters]) func()
 }

@@ -11,6 +11,7 @@ import (
 // MssParseBytes parses human-readable sizes like 500MB or 1GB into bytes.
 //
 // @purpose Normalize CLI threshold values into positive byte counts.
+// @consumer cmd/mss/main.go
 // @pre input is non-empty and contains a supported suffix or positive integer.
 // @post Returns bytes > 0 on success.
 func MssParseBytes(input string) (int64, error) {

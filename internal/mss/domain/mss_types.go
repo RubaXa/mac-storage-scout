@@ -15,6 +15,8 @@ const (
 )
 
 // MssScanConfig defines scan execution parameters.
+//
+// @consumer cmd/mss/main.go
 type MssScanConfig struct {
 	Paths          []string
 	ThresholdBytes int64
@@ -27,6 +29,8 @@ type MssScanConfig struct {
 }
 
 // MssCounters tracks scan progress and completion statistics.
+//
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssCounters struct {
 	DirsScanned  int64
 	FilesScanned int64
@@ -55,6 +59,8 @@ type MssWalkEntry struct {
 }
 
 // MssWalkEvent wraps a walk entry or a non-fatal traversal error.
+//
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssWalkEvent struct {
 	Entry *MssWalkEntry
 	Err   error
@@ -80,6 +86,8 @@ type MssOtherBucket struct {
 }
 
 // MssNode is an aggregated filesystem tree node used by report rendering.
+//
+// @consumer internal/mss/adapters/report/mss_tree_text_report_adapter.go
 type MssNode struct {
 	Path      string
 	Name      string

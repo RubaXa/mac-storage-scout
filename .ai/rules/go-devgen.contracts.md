@@ -28,6 +28,7 @@ Use this shape when logic is non-trivial:
 // MssXxx does Yyy.
 //
 // @purpose One-sentence business intent.
+// @consumer Primary caller/module that depends on this contract.
 // @pre Required caller/system assumptions.
 // @post Guaranteed outcome on success.
 // @invariant Rule that must stay true after refactors.
@@ -35,6 +36,7 @@ Use this shape when logic is non-trivial:
 
 ### 5.2 Interface implementations
 - On implementation type: `@implements {PortName} <path>`.
+- On contract roots and exported runtime entry points: add `@consumer <path-or-module>`.
 - On methods that mirror interface behavior: `@see {PortName#Method} <path>`.
 - If behavior diverges from interface contract, write explicit `@pre/@post/@invariant` instead of `@see` only.
 

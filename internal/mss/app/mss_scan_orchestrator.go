@@ -15,6 +15,7 @@ import (
 // MssScanOrchestrator wires walker, aggregator, and progress lifecycle.
 //
 // @purpose Coordinate full scan execution from walk events to aggregated roots.
+// @consumer cmd/mss/main.go
 // @invariant Non-fatal runtime errors do not crash orchestration when adapters follow contracts.
 // @implements {MssScanOrchestratorPort} internal/mss/ports/mss_scan_orchestrator_port.go
 type MssScanOrchestrator struct {

@@ -8,6 +8,8 @@ import (
 )
 
 // MssReportComposerPort renders aggregated roots into user-facing output.
+//
+// @consumer cmd/mss/main.go
 type MssReportComposerPort interface {
 	Render(w io.Writer, roots []*domain.MssNode, cfg domain.MssScanConfig) error
 }

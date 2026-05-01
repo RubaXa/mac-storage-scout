@@ -32,7 +32,7 @@
 - Prefer stable semantic comparisons over brittle output-byte comparisons.
 
 ## Adaptation Notes From TS XML Rules
-- TS JSDoc contract tags were mapped to Go doc comments plus machine tags (`@purpose/@pre/@post/@invariant`).
+- TS JSDoc contract tags were mapped to Go doc comments plus machine tags (`@purpose/@consumer/@pre/@post/@invariant`).
 - TS `cause` chaining mapped to Go `%w` wrapping and `errors.Is/As`.
 - TS structural START/END anchors retained as optional but mandatory for non-trivial policy blocks.
 - TS test phase model adapted into Go test phase comments and optional anchors for complex tests.

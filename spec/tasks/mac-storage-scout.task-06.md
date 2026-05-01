@@ -74,6 +74,8 @@
 - 2026-05-01T14:19:39Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
 - 2026-05-01T14:19:39Z: verification `./bin/mss scan --profile macos-core --threshold 500MB --top 5 --no-progress` -> PASS
 - 2026-05-01T14:19:39Z: verification delete flow (`--dry-run` and `--yes` on temp fixture) -> PASS
+- 2026-05-01T15:00:05Z: added explicit `@consumer` tags to contract roots (ports/adapters/orchestrator/domain) and updated rules/spec references
+- 2026-05-01T15:00:05Z: verification `go test ./...` after `@consumer` pass -> PASS
 
 ## EXEC_POINTER
 For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

@@ -14,6 +14,7 @@ import (
 // MssAnsiProgressAdapter renders periodic progress status for interactive terminals.
 //
 // @purpose Provide lightweight live scan feedback without affecting worker throughput.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 // @implements {MssProgressEmitterPort} internal/mss/ports/mss_progress_emitter_port.go
 type MssAnsiProgressAdapter struct{}
 

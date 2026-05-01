@@ -8,6 +8,8 @@ import (
 )
 
 // MssScanOrchestratorPort coordinates walk, aggregation, and final report inputs.
+//
+// @consumer cmd/mss/main.go
 type MssScanOrchestratorPort interface {
 	Run(ctx context.Context, cfg domain.MssScanConfig) ([]*domain.MssNode, domain.MssCounters, error)
 }

@@ -13,6 +13,7 @@ import (
 // MssTreeTextReportAdapter renders threshold-aware sections to text output.
 //
 // @purpose Serialize aggregated nodes into deterministic report sections.
+// @consumer cmd/mss/main.go
 // @invariant Other bucket shape stays consistent: top-N, rest, types.
 // @implements {MssReportComposerPort} internal/mss/ports/mss_report_composer_port.go
 type MssTreeTextReportAdapter struct{}

@@ -8,6 +8,8 @@ import (
 )
 
 // MssFilesystemWalkerPort walks filesystem entries and emits scan events.
+//
+// @consumer internal/mss/app/mss_scan_orchestrator.go
 type MssFilesystemWalkerPort interface {
 	Walk(ctx context.Context, cfg domain.MssScanConfig, emit func(domain.MssWalkEvent)) domain.MssCounters
 }
