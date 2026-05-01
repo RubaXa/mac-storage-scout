@@ -24,3 +24,6 @@
 - Follow traceability links to root spec instead of duplicating contracts.
 - Do not mark task `[x] DONE` without verification evidence in Execution Log.
 - Always implement/verify `Target Test Files` ownership.
+- Use Git flow: work in `ai/<name>` branch, then open PR to `master`.
+- PR must follow `.github/PULL_REQUEST_TEMPLATE.md`.
+- Merge readiness must satisfy `.github/MERGE_CHECKLIST.md`.

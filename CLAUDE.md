@@ -27,3 +27,9 @@ go build -o ./bin/mss ./cmd/mss
 - preserve output contracts from AGENTS.md
 - preserve deletion safety contracts from AGENTS.md
 - append/update Execution Log in affected task spec file(s)
+- follow Git flow policy from AGENTS.md:
+  - create `ai/<name>` branch
+  - push branch
+  - open PR to `master`
+  - use `.github/PULL_REQUEST_TEMPLATE.md`
+  - satisfy `.github/MERGE_CHECKLIST.md`
