@@ -325,8 +325,7 @@ TSK-01 (CLI scaffold)
                       ├─ TSK-06 (ai rules + contract lint)
                       │    └─ TSK-07 (rename to mac-storage-scout)
                       │         └─ TSK-08 (master sync protocol)
-                      │              └─ TSK-09 (perf benchmark suite)  ← current
-                      └─ (future TSK-10+: optimizations from TSK-09 findings)
+                      │              └─ TSK-09 (perf benchmark suite)
 ```
 
 ### DAG Update Policy

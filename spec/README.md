@@ -28,7 +28,6 @@
 | TSK-07 | CLI Rename to `mac-storage-scout` + Universal Agent Skill | TSK-05, TSK-06 | ✅ DONE |
 | TSK-08 | Master Sync Protocol + Post-Merge Return-To-Master Policy | TSK-07 | ✅ DONE |
 | TSK-09 | Performance Benchmark Suite & Engine Optimization Research | TSK-02, TSK-05, TSK-08 | ✅ DONE |
-| TSK-10 | Walker Optimization: Dir-Lstat Elimination + Pre-alloc Events | TSK-09 | ⏳ PENDING |
 
 ## Execution Agent Rules
 - Start from lowest dependency depth.
