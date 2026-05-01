@@ -60,6 +60,7 @@
 - 2026-05-01T15:50:00Z: renderer unified for `other/top/rest/types`
 - 2026-05-01T16:03:00Z: ASCII UX improvements + emoji-enhanced readability pass
 - 2026-05-01T16:03:00Z: verification `go test ./...` -> PASS
+- 2026-05-01T13:54:55Z: added `--plain` ASCII-only render mode and report test coverage
 
 ## EXEC_POINTER
 For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

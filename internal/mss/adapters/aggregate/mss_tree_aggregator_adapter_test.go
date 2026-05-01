@@ -32,3 +32,15 @@ func TestBuildTreeThresholdOther(t *testing.T) {
 		t.Fatalf("unexpected other bucket: %+v", r.Other)
 	}
 }
+
+func TestBuildTreeRejectsInvalidTopN(t *testing.T) {
+	a := &MssTreeAggregatorAdapter{}
+	cfg := domain.MssScanConfig{Paths: []string{"/root"}, ThresholdBytes: 500, TopN: 0}
+	events := []domain.MssWalkEvent{
+		{Entry: &domain.MssWalkEntry{Path: "/root", ParentPath: "/", Name: "/root", Kind: domain.MssEntryKindDir}},
+	}
+
+	if _, err := a.BuildTree(events, cfg); err == nil {
+		t.Fatalf("expected error for invalid topN")
+	}
+}

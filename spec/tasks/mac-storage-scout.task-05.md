@@ -72,6 +72,7 @@
 - 2026-05-01T16:03:00Z: verification `go test ./...` -> PASS
 - 2026-05-01T16:03:00Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
 - 2026-05-01T16:03:00Z: verification runtime scan -> PASS
+- 2026-05-01T13:54:55Z: validated `--top >= 1` and hardened delete guard against protected descendants/aliases
 
 ## EXEC_POINTER
 For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

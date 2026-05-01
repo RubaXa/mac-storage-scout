@@ -23,6 +23,13 @@ go build -o ./bin/mss ./cmd/mss
   --threshold 500MB \
   --size-mode allocated \
   --profile macos-core
+
+# Same scan in plain ASCII mode (no emoji glyphs)
+./bin/mss scan \
+  --threshold 500MB \
+  --top 5 \
+  --plain \
+  --profile macos-core
 ```
 
 ```text
