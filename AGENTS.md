@@ -70,6 +70,9 @@ When behavior/UX/CLI changes:
 - direct commits to `master`: forbidden
 - required branch naming: `ai/<name>`
 - required merge path: PR from `ai/<name>` into `master`
+- PR body source: `.github/PULL_REQUEST_TEMPLATE.md` (required)
+- merge gate checklist: `.github/MERGE_CHECKLIST.md` (required)
+- reviewers/owners policy: `.github/CODEOWNERS`
 - before PR:
   - `go test ./...` must pass
   - `go build -o ./bin/mss ./cmd/mss` must pass

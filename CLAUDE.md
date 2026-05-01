@@ -31,3 +31,5 @@ go build -o ./bin/mss ./cmd/mss
   - create `ai/<name>` branch
   - push branch
   - open PR to `master`
+  - use `.github/PULL_REQUEST_TEMPLATE.md`
+  - satisfy `.github/MERGE_CHECKLIST.md`

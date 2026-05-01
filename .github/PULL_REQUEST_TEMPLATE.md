@@ -1,0 +1,64 @@
+# 🛰️ Pull Request
+
+```text
+ __  __  ____   ____
+|  \/  |/ ___| / ___|   mac-storage-scout
+| |\/| |\___ \ \___ \   PR quality gate
+| |  | | ___) | ___) |
+|_|  |_||____/ |____/
+```
+
+## ✨ Summary
+- What changed and why (2-5 bullets)
+
+## 🎯 Scope
+- Included:
+  - 
+- Excluded:
+  - 
+
+## 📦 Changed Files
+- `path/to/file`
+- `path/to/file`
+
+## 🧭 Spec / Task Traceability
+- Root spec section(s):
+  - 
+- Task spec(s) updated:
+  - `spec/tasks/...` (Execution Log updated)
+
+## 🛡️ Risk Assessment
+- Risk level: `low | medium | high`
+- Potential regressions:
+  - 
+- Rollback plan:
+  - 
+
+## ✅ Verification
+- [ ] `go test ./...`
+- [ ] `go build -o ./bin/mss ./cmd/mss`
+- [ ] runtime check (if behavior changed)
+
+Verification output (short):
+```text
+paste key output lines here
+```
+
+## 🧪 Output Contract Check (if report logic touched)
+- [ ] `>= threshold` items are explicit
+- [ ] `< threshold` items are only in `other`
+- [ ] `other` contains `top-N`, `rest`, `types`
+
+## 🧹 Delete Safety Check (if delete logic touched)
+- [ ] `--dry-run` validated first
+- [ ] protected paths still blocked
+- [ ] real delete requires `--yes`
+
+## 📝 Reviewer Checklist
+- [ ] scope is clear
+- [ ] implementation matches spec
+- [ ] verification is sufficient
+- [ ] docs updated (README/spec/task Execution Log)
+
+## 📚 Notes
+- Additional context / screenshots / links
