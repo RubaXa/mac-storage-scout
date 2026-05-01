@@ -90,6 +90,7 @@ When behavior/UX/CLI changes:
 - append/update Execution Log in affected `spec/tasks/*.md` with UTC timestamp
 
 When a new task spec is created (`spec/tasks/mac-storage-scout.task-NN.md`):
+- add the task row to `spec/README.md` (Execution Order DAG table) — this is the **living status tracker**; update it also when task status changes (pending → in PR → done)
 - add the task to the Execution Order DAG in `spec/mac-storage-scout.spec.md` (section 9) before opening a PR
 - add a D-NNN entry to the Decision Summary in `spec/mac-storage-scout.spec.md` (section 8) summarizing the key decision this task encodes
 
