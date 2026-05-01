@@ -3,16 +3,16 @@
 ## DOC_META
 - doc_id: CLAUDE_AGENT_ENTRYPOINT
 - doc_type: ai_to_ai_entrypoint
-- version: 1.0.0
+- version: 1.1.0
 - status: active
-- updated_utc: 2026-05-01T13:12:00Z
+- updated_utc: 2026-05-01T15:00:00Z
 
 ## SOURCE_OF_TRUTH
 - primary: AGENTS.md
 - precedence_rule: if conflict exists, AGENTS.md wins
 
 ## REQUIRED_BOOTSTRAP
-1. **sync `master` first** — `git checkout master && git fetch origin && git pull --ff-only origin master`; only then `git checkout -b ai/<name>`. See `AGENTS.md::MASTER_SYNC_PROTOCOL`.
+1. **branch context check first** — run `git branch --show-current`. If not on `master`, stop and ask the user whether to switch to `master` or continue on the current branch. Only if on `master` (or user explicitly confirms continuing): `git fetch origin && git pull --ff-only origin master`, then `git checkout -b ai/<name>`. See `AGENTS.md::MASTER_SYNC_PROTOCOL` checkpoint 0.
 2. read AGENTS.md
 3. read `.agent-skill/SKILL.md` (universal CLI skill — build/scan/delete)
 4. read relevant task specs `spec/tasks/*.md` (Execution Log sections)
