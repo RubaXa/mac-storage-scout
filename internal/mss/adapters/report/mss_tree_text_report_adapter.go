@@ -10,10 +10,29 @@ import (
 	"unicode/utf8"
 )
 
+// MssTreeTextReportAdapter renders threshold-aware sections to text output.
+//
+// @purpose Serialize aggregated nodes into deterministic report sections.
+// @consumer cmd/mss/main.go
+// @invariant Other bucket shape stays consistent: top-N, rest, types.
+// @implements {MssReportComposerPort} internal/mss/ports/mss_report_composer_port.go
 type MssTreeTextReportAdapter struct{}
 
-// @implements {MssReportComposerPort} internal/mss/ports/mss_report_composer_port.go
+// @see {MssReportComposerPort#Render} internal/mss/ports/mss_report_composer_port.go
+// @purpose Render roots into terminal report output.
+// @consumer cmd/mss/main.go
+// @pre w is non-nil.
+// @param w Output writer.
+// @param roots Aggregated roots.
+// @param cfg Scan configuration.
+// @returns Render error.
+// @post Report header and every root section are emitted in deterministic order.
 func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, cfg domain.MssScanConfig) error {
+	if w == nil {
+		return fmt.Errorf("[MssTreeTextReportAdapter.Render] writer is nil")
+	}
+
+	// START_RENDER_HEADER
 	style := renderStyle{emoji: !cfg.PlainOutput}
 	if style.emoji {
 		fmt.Fprintf(w, "┌─ 🛰️  mss :: mac-storage-scout\n")
@@ -24,7 +43,10 @@ func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, 
 		fmt.Fprintf(w, "threshold: %s | top: %d | size-mode: %s\n", domain.MssHumanBytes(cfg.ThresholdBytes), cfg.TopN, cfg.SizeMode)
 		fmt.Fprintf(w, "sections: %d\n\n", len(roots))
 	}
+	// END_RENDER_HEADER
 
+	// START_RENDER_ROOT_SECTIONS
+	// invariant: each root renders exactly one section body and optional separator.
 	for i, r := range roots {
 		if i > 0 {
 			fmt.Fprintln(w)
@@ -36,13 +58,24 @@ func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, 
 		}
 		a.printNodeChildren(w, r, "", cfg.ThresholdBytes, style)
 	}
+	// END_RENDER_ROOT_SECTIONS
 	return nil
 }
 
+// renderStyle controls output visual mode.
+//
+// @purpose Keep style switch explicit between emoji and plain render.
+// @consumer MssTreeTextReportAdapter rendering methods.
 type renderStyle struct {
 	emoji bool
 }
 
+// printNodeChildren renders node subtree and optional other block.
+//
+// @purpose Serialize nested children with deterministic tree formatting.
+// @consumer MssTreeTextReportAdapter.Render.
+// @param w Output writer.
+// @param n Node to render.
 func (a *MssTreeTextReportAdapter) printNodeChildren(w io.Writer, n *domain.MssNode, indent string, threshold int64, style renderStyle) {
 	count := len(n.Children)
 	for i, c := range n.Children {
@@ -71,6 +104,8 @@ func (a *MssTreeTextReportAdapter) printNodeChildren(w io.Writer, n *domain.MssN
 		return
 	}
 
+	// START_RENDER_OTHER_BLOCK
+	// purpose: preserve canonical small-items detail shape across all sections.
 	topLabel := len(n.Other.TopItems)
 	if topLabel == 0 {
 		topLabel = 5
@@ -130,8 +165,16 @@ func (a *MssTreeTextReportAdapter) printNodeChildren(w io.Writer, n *domain.MssN
 			fmt.Fprintf(w, "%s   └─ %s %s (%d files)\n", otherIndent, padRight("rest types", 18), domain.MssHumanBytes(n.Other.TypeRestSz), n.Other.TypeRestCnt)
 		}
 	}
+	// END_RENDER_OTHER_BLOCK
 }
 
+// padRight fills strings with dots for aligned text output.
+//
+// @purpose Improve human scan readability of report lines.
+// @consumer MssTreeTextReportAdapter printing helpers.
+// @param s Input label.
+// @param width Target width.
+// @returns Padded or unchanged label.
 func padRight(s string, width int) string {
 	if utf8.RuneCountInString(s) >= width {
 		return s

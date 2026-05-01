@@ -99,6 +99,7 @@ Example shape:
 - Task DAG: `spec/tasks/*.md`
 - Runtime/build proofs: `spec/evidence/*`
 - Session handoff runbook: `spec/SESSION-HANDOFF.md`
+- AI coding/testing rule set: `.ai/README.md`, `.ai/rules/*`
 
 ## 🧰 Standard Operator Workflow
 1. Scan with `--profile macos-core`.
@@ -112,4 +113,13 @@ Example shape:
 cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
 go build -o ./bin/mss ./cmd/mss
+```
+
+## 🧱 Contract Lint Gate
+```bash
+# one-time repo setup
+./scripts/setup-githooks.sh
+
+# manual run (same check as pre-commit hook)
+go run ./cmd/mss-contract-lint --root . --mode short --format text
 ```

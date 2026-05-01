@@ -325,6 +325,10 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - implemented_in: `TSK-05`
 - D-004: Profile `macos-core` target paths are practical for real macOS disk investigations.
   - implemented_in: `TSK-05`
+- D-005: Repository-wide autonomous Go coding/testing rules are centralized under `.ai` and mandatory for bootstrap.
+  - implemented_in: `TSK-06`
+- D-006: Contract comments and non-trivial control-flow anchors are enforced for runtime-critical modules.
+  - implemented_in: `TSK-06`
 
 ### Invalid / Reverted Decisions
 - R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.
@@ -336,10 +340,16 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
 - Task specs: detailed step-by-step execution logs and verification timeline.
 
 ## 7. Dev Agent Implementation Rules
+0. Before code changes, load `.ai` rule set:
+   - `.ai/rules/go-devgen.contracts.md`
+   - `.ai/rules/go-qa.testing.md`
+   - setup hooks once: `./scripts/setup-githooks.sh`
 1. Для каждого adapter-level типа добавлять doc-comment с trace:
    - `@implements {PortName} <path/to/port.file>`
 2. Для методов, реализующих контракт без изменения семантики, использовать `@see {PortName#MethodName} <path/to/port.file>`.
 3. Если метод меняет/расширяет поведение контракта, описывать новый контракт явно в comment block.
+   - For non-trivial logic prefer machine tags: `@purpose`, `@consumer`, `@pre`, `@post`, `@invariant`.
+   - For non-trivial control flow use intent anchors: `START_...` / `END_...`.
 4. Namespace discipline:
    - ключевые типы/файлы используют префикс `mss_` / `Mss...`.
 5. Platform/runtime-specific implementations обязаны ссылаться на supporting artifact в class/file comment.

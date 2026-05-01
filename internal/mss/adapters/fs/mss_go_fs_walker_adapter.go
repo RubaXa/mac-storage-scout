@@ -4,7 +4,6 @@ package fs
 
 import (
 	"context"
-	"errors"
 	"mac-storage-scout/internal/mss/domain"
 	"os"
 	"path/filepath"
@@ -15,16 +14,42 @@ import (
 	"time"
 )
 
+// MssGoFsWalkerAdapter traverses filesystem entries and emits metadata events.
+//
+// @purpose Provide runtime filesystem walking for scan orchestration.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
+// @invariant Symlinks are not followed in default traversal mode.
+// @implements {MssFilesystemWalkerPort} internal/mss/ports/mss_filesystem_walker_port.go
 type MssGoFsWalkerAdapter struct{}
 
+// mssQueueItem carries pending traversal item state.
+//
+// @purpose Transport path/root pair through worker queue.
+// @consumer MssGoFsWalkerAdapter.Walk queue processing.
 type mssQueueItem struct {
 	path string
 	root string
 }
 
-// @implements {MssFilesystemWalkerPort} internal/mss/ports/mss_filesystem_walker_port.go
+// @see {MssFilesystemWalkerPort#Walk} internal/mss/ports/mss_filesystem_walker_port.go
+// @purpose Walk configured roots and emit normalized scan events.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
+// @pre cfg.Paths contains at least one path.
+// @param ctx Cancellation context.
+// @param cfg Scan configuration.
+// @param emit Event sink callback.
+// @returns Traversal counters.
+// @post Returns counters collected from walk lifecycle.
 func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfig, emit func(domain.MssWalkEvent)) domain.MssCounters {
 	counters := domain.MssCounters{StartedAt: time.Now()}
+	if len(cfg.Paths) == 0 {
+		return counters
+	}
+
+	if emit == nil {
+		return counters
+	}
+
 	workers := cfg.Workers
 	if workers <= 0 {
 		workers = runtime.NumCPU() * 2
@@ -36,6 +61,8 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 		}
 	}
 
+	// START_INITIALIZE_WORKER_POOL
+	// invariant: queue depth tracks pending jobs (+1 enqueue, -1 before processing).
 	jobs := make(chan mssQueueItem, 65536)
 	var taskWG sync.WaitGroup
 	var workersWG sync.WaitGroup
@@ -68,11 +95,15 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 		ap := mssExpandPath(p)
 		enqueue(mssQueueItem{path: ap, root: ap})
 	}
+	// END_INITIALIZE_WORKER_POOL
 
+	// START_CLOSE_QUEUE_AFTER_DRAIN
+	// purpose: close jobs channel exactly once after all enqueued work is completed.
 	go func() {
 		taskWG.Wait()
 		close(jobs)
 	}()
+	// END_CLOSE_QUEUE_AFTER_DRAIN
 
 	workersWG.Wait()
 
@@ -84,6 +115,12 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 	return counters
 }
 
+// walkPath processes one queued path.
+//
+// @purpose Emit one path and enqueue descendants under walker policy.
+// @consumer MssGoFsWalkerAdapter.Walk worker loop.
+// @param ctx Cancellation context.
+// @param cfg Scan configuration.
 func (a *MssGoFsWalkerAdapter) walkPath(
 	ctx context.Context,
 	cfg domain.MssScanConfig,
@@ -96,11 +133,13 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 	errs *int64,
 	enqueue func(mssQueueItem),
 ) {
+	// START_ABORT_ON_CONTEXT_CANCEL
 	select {
 	case <-ctx.Done():
 		return
 	default:
 	}
+	// END_ABORT_ON_CONTEXT_CANCEL
 
 	fi, err := os.Lstat(path)
 	if err != nil {
@@ -134,6 +173,8 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 			return
 		}
 
+		// START_EMIT_DIRECTORY_CHILDREN
+		// failure mode: per-entry metadata errors are non-fatal and do not abort sibling processing.
 		for _, de := range entries {
 			child := filepath.Join(path, de.Name())
 			if de.IsDir() {
@@ -161,6 +202,7 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 				Ext:        mssExtOf(de.Name()),
 			}})
 		}
+		// END_EMIT_DIRECTORY_CHILDREN
 		return
 	}
 
@@ -179,6 +221,12 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 	}
 }
 
+// mssExtOf extracts normalized file extension.
+//
+// @purpose Classify files for type aggregation.
+// @consumer walkPath file event emission.
+// @param name File name.
+// @returns Extension or no-ext marker.
 func mssExtOf(name string) string {
 	ext := strings.ToLower(filepath.Ext(name))
 	if ext == "" {
@@ -187,6 +235,12 @@ func mssExtOf(name string) string {
 	return ext
 }
 
+// mssExpandPath resolves home and relative paths.
+//
+// @purpose Normalize input roots before traversal.
+// @consumer MssGoFsWalkerAdapter.Walk root setup.
+// @param p Input path.
+// @returns Expanded absolute or original path.
 func mssExpandPath(p string) string {
 	if p == "~" || strings.HasPrefix(p, "~/") {
 		h, err := os.UserHomeDir()
@@ -205,8 +259,4 @@ func mssExpandPath(p string) string {
 		return p
 	}
 	return ap
-}
-
-func mssIsNonFatal(err error) bool {
-	return errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist)
 }

@@ -6,13 +6,24 @@ import (
 	"fmt"
 	"mac-storage-scout/internal/mss/domain"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 )
 
+// MssAnsiProgressAdapter renders periodic progress status for interactive terminals.
+//
+// @purpose Provide lightweight live scan feedback without affecting worker throughput.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
+// @implements {MssProgressEmitterPort} internal/mss/ports/mss_progress_emitter_port.go
 type MssAnsiProgressAdapter struct{}
 
-// @implements {MssProgressEmitterPort} internal/mss/ports/mss_progress_emitter_port.go
+// @see {MssProgressEmitterPort#Start} internal/mss/ports/mss_progress_emitter_port.go
+// @purpose Start periodic tty progress renderer and return stop callback.
+// @consumer internal/mss/app/mss_scan_orchestrator.go
+// @param counters Shared atomic counters pointer.
+// @returns Stop callback.
+// @post Returned stop function is safe to call once after Start.
 func (a *MssAnsiProgressAdapter) Start(counters *atomic.Pointer[domain.MssCounters]) func() {
 	if !mssIsTTY() {
 		return func() {}
@@ -48,12 +59,20 @@ func (a *MssAnsiProgressAdapter) Start(counters *atomic.Pointer[domain.MssCounte
 		}
 	}()
 
+	var once sync.Once
 	return func() {
-		close(stop)
-		<-done
+		once.Do(func() {
+			close(stop)
+			<-done
+		})
 	}
 }
 
+// mssIsTTY checks whether stdout is interactive terminal.
+//
+// @purpose Disable progress rendering for non-interactive output streams.
+// @consumer MssAnsiProgressAdapter.Start.
+// @returns True when tty output is available.
 func mssIsTTY() bool {
 	fi, err := os.Stdout.Stat()
 	if err != nil {

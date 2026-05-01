@@ -4,6 +4,12 @@ package domain
 
 import "fmt"
 
+// MssHumanBytes formats bytes in binary units for report readability.
+//
+// @purpose Keep size rendering compact and deterministic across all outputs.
+// @consumer internal/mss/adapters/report/mss_tree_text_report_adapter.go
+// @param v Raw byte size.
+// @returns Human-readable size string.
 func MssHumanBytes(v int64) string {
 	if v < 0 {
 		v = 0

@@ -1,0 +1,47 @@
+# Evidence: TSK-06 Go ruleset + contract hardening
+
+UTC: 2026-05-01T14:19:39Z
+Branch: ai/go-devgen-qa-rules
+
+## Commands and Results
+
+1) `go test ./...`
+- Result: PASS
+- Key lines:
+  - `ok   mac-storage-scout/internal/mss/adapters/fs`
+  - `ok   mac-storage-scout/internal/mss/adapters/progress`
+  - `ok   mac-storage-scout/internal/mss/app`
+  - `ok   mac-storage-scout/internal/mss/integration`
+
+2) `go test -count=1 ./...`
+- Result: PASS
+- Key lines:
+  - `ok   mac-storage-scout/cmd/mss`
+  - `ok   mac-storage-scout/internal/mss/adapters/aggregate`
+  - `ok   mac-storage-scout/internal/mss/domain`
+
+3) `go build -o ./bin/mss ./cmd/mss`
+- Result: PASS
+
+4) `./bin/mss scan --profile macos-core --threshold 500MB --top 5 --no-progress`
+- Result: PASS
+- Output shape observed:
+  - header with threshold/top/size-mode
+  - 4 sections rendered
+  - explicit large items shown
+  - `other` blocks rendered with `top-N`, `rest`, `types`
+
+5) Delete safety smoke on temp fixture:
+- `./bin/mss delete --dry-run /tmp/mss-delete-post-...`
+- `./bin/mss delete --yes /tmp/mss-delete-post-...`
+- Result: PASS
+- Key lines:
+  - `DRY-RUN delete ...`
+  - `DELETED ...`
+  - `REMOVED`
+
+## Scope Implemented
+- Added `.ai` rules/checklists/research for Go DevGen + Go QA workflows.
+- Wired `.ai` bootstrap into `AGENTS.md`, `AGETNS.md`, and spec docs.
+- Hardened production contracts with `@purpose/@pre/@post/@invariant` and intent anchors.
+- Expanded tests for previously uncovered surfaces (`fs`, `progress`, `app`, `integration`).

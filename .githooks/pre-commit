@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Contract lint gate for commits.
+# Blocks commit when required contract tags are missing.
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+echo "[pre-commit] Running contract lint..."
+mkdir -p /tmp/mss-gocache /tmp/mss-gomodcache
+GOCACHE=/tmp/mss-gocache GOMODCACHE=/tmp/mss-gomodcache \
+  go run ./cmd/mss-contract-lint --root . --mode short --format text
+
+echo "[pre-commit] Contract lint passed."

@@ -7,6 +7,13 @@ import (
 	"syscall"
 )
 
+// mssSizeFromStat selects logical or allocated byte size from syscall metadata.
+//
+// @purpose Resolve file size according to selected size mode.
+// @consumer mss_go_fs_walker_adapter walk path processing.
+// @param mode Selected size mode.
+// @param info Sys metadata payload.
+// @returns Non-negative resolved byte size.
 func mssSizeFromStat(mode domain.MssSizeMode, info any, fallback int64) int64 {
 	st, ok := info.(*syscall.Stat_t)
 	if !ok || st == nil {
