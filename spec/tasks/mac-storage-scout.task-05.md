@@ -60,7 +60,7 @@
 ## EXEC_LOG_META
 - task_id: TSK-05
 - status: done
-- canonical_log: ../ACTION-LOG.md
+- canonical_log: self (this task file)
 - evidence_refs:
   - ../evidence/build-test-proof.txt
   - ../evidence/profile-macos-core-proof.txt
@@ -74,4 +74,4 @@
 - 2026-05-01T16:03:00Z: verification runtime scan -> PASS
 
 ## EXEC_POINTER
-For full cross-task chronology use `spec/ACTION-LOG.md`.
+For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

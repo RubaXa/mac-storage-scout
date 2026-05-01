@@ -304,6 +304,30 @@ mac-storage-scout/
 - `internal/mss/adapters/progress/*.go`: live terminal progress rendering.
 - `internal/mss/adapters/report/*.go`: final ASCII tree output formatter.
 
+
+## 8. Decision Summary (Root-Level)
+
+Purpose: store concise cross-task lessons here; keep detailed chronology inside each task spec (`spec/tasks/*.md`, section `Execution Log (AI-to-AI)`).
+
+### Valid Decisions
+- D-001: Threshold contract (`>= threshold` explicit, `< threshold` in `other`) is correct and should remain invariant.
+  - implemented_in: `TSK-03`, `TSK-04`
+- D-002: Standardized `other` block (`top-N`, `rest`, `types`) across all sections improves comparability and readability.
+  - implemented_in: `TSK-04`
+- D-003: Safe-delete workflow (`--dry-run` before `--yes`, protected-path guards) is mandatory.
+  - implemented_in: `TSK-05`
+- D-004: Profile `macos-core` target paths are practical for real macOS disk investigations.
+  - implemented_in: `TSK-05`
+
+### Invalid / Reverted Decisions
+- R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.
+  - resolution: use task-local Execution Logs as primary chronology; keep root spec only for decision summaries.
+  - applied_in: `TSK-05` documentation update
+
+### Documentation Policy
+- Root spec: decision-level summary only.
+- Task specs: detailed step-by-step execution logs and verification timeline.
+
 ## 7. Dev Agent Implementation Rules
 1. Для каждого adapter-level типа добавлять doc-comment с trace:
    - `@implements {PortName} <path/to/port.file>`

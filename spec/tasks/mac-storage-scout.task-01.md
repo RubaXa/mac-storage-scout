@@ -67,7 +67,7 @@
 ## EXEC_LOG_META
 - task_id: TSK-01
 - status: done
-- canonical_log: ../ACTION-LOG.md
+- canonical_log: self (this task file)
 - evidence_refs:
   - ../evidence/build-test-proof.txt
   - ../evidence/acceptance-matrix.md
@@ -79,4 +79,4 @@
 - 2026-05-01T12:00:00Z: verification `go build -o ./bin/mss ./cmd/mss` -> PASS
 
 ## EXEC_POINTER
-For full cross-task chronology use `spec/ACTION-LOG.md`.
+For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.

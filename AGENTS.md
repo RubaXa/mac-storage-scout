@@ -16,7 +16,7 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 2. spec/mac-storage-scout.spec.md
 3. spec/mac-storage-scout.output-format.source-of-truth.md
 4. spec/SESSION-HANDOFF.md
-5. spec/ACTION-LOG.md
+5. spec/tasks/mac-storage-scout.task-*.md (Execution Log sections)
 
 ## HARD_CONTRACTS
 - output.large_items:
@@ -45,7 +45,7 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 2. implement scoped change
 3. run verification again
 4. update docs/specs if behavior changed
-5. append spec/ACTION-LOG.md
+5. append Execution Log in the affected task spec file(s)
 6. commit + push
 
 ## REQUIRED_COMMANDS
@@ -62,11 +62,11 @@ go build -o ./bin/mss ./cmd/mss
 When behavior/UX/CLI changes:
 - update README.md
 - update matching spec file(s)
-- append spec/ACTION-LOG.md entry with UTC timestamp
+- append/update Execution Log in affected `spec/tasks/*.md` with UTC timestamp
 
 ## DONE_CRITERIA
 - build_pass: true
 - tests_pass: true
 - output_contract_preserved: true
 - delete_safety_contract_preserved: true
-- action_log_updated: true
+- task_execution_log_updated: true

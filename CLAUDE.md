@@ -13,7 +13,7 @@
 
 ## REQUIRED_BOOTSTRAP
 1. read AGENTS.md
-2. read spec/ACTION-LOG.md latest entries
+2. read relevant task specs `spec/tasks/*.md` (Execution Log sections)
 3. run verification baseline
 
 ## VERIFICATION_BASELINE
@@ -26,4 +26,4 @@ go build -o ./bin/mss ./cmd/mss
 ## BEHAVIOR_RULES
 - preserve output contracts from AGENTS.md
 - preserve deletion safety contracts from AGENTS.md
-- append every meaningful change to spec/ACTION-LOG.md
+- append/update Execution Log in affected task spec file(s)
