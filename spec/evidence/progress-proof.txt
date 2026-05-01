@@ -1,0 +1,76 @@
+2026-05-01T11:30:37Z
+^D[2Kscanned: dirs=5981 files=35457 bytes=983MB errors=0 elapsed=0s[2Kscanned: dirs=12235 files=74952 bytes=1.44GB errors=0 elapsed=0s[2Kscanned: dirs=18645 files=111961 bytes=1.91GB errors=0 elapsed=0s[2Kscanned: dirs=24006 files=148611 bytes=2.24GB errors=0 elapsed=1s[2Kscanned: dirs=30578 files=182223 bytes=3.84GB errors=0 elapsed=1s[2Kscanned: dirs=35038 files=221976 bytes=4.30GB errors=0 elapsed=1s[2Kscanned: dirs=40311 files=254645 bytes=4.88GB errors=0 elapsed=1s[2Kscanned: dirs=45803 files=293043 bytes=6.67GB errors=0 elapsed=2s[2Kscanned: dirs=51000 files=318094 bytes=8.90GB errors=0 elapsed=2s[2Kscanned: dirs=58188 files=344227 bytes=12.4GB errors=0 elapsed=2s[2Kscanned: dirs=63539 files=383382 bytes=12.7GB errors=0 elapsed=2s[2Kscanned: dirs=69876 files=423367 bytes=14.5GB errors=0 elapsed=3s[2Kscanned: dirs=74455 files=456630 bytes=15.0GB errors=0 elapsed=3s[2Kscanned: dirs=79428 files=481415 bytes=15.4GB errors=0 elapsed=3s[2Kscanned: dirs=82083 files=516054 bytes=15.6GB errors=0 elapsed=3s[2Kscanned: dirs=85528 files=543063 bytes=15.8GB errors=0 elapsed=4s[2Kscanned: dirs=89109 files=572912 bytes=16.2GB errors=0 elapsed=4s[2Kscanned: dirs=94967 files=599139 bytes=16.4GB errors=0 elapsed=4s[2Kscanned: dirs=100611 files=627032 bytes=16.7GB errors=0 elapsed=4s[2Kscanned: dirs=105015 files=664410 bytes=16.9GB errors=0 elapsed=5s[2Kscanned: dirs=109334 files=698384 bytes=17.2GB errors=0 elapsed=5s[2Kscanned: dirs=113317 files=736011 bytes=17.5GB errors=0 elapsed=5s[2Kscanned: dirs=117653 files=770891 bytes=17.8GB errors=0 elapsed=5s[2Kscanned: dirs=122691 files=802334 bytes=18.4GB errors=0 elapsed=6s[2Kscanned: dirs=125660 files=843668 bytes=18.6GB errors=0 elapsed=6s[2Kscanned: dirs=128883 files=880554 bytes=18.7GB errors=0 elapsed=6s[2Kscanned: dirs=133723 files=912843 bytes=18.9GB errors=0 elapsed=6s[2Kscanned: dirs=140710 files=949817 bytes=19.1GB errors=0 elapsed=7s[2Kscanned: dirs=143355 files=980972 bytes=19.2GB errors=0 elapsed=7s[2Kscanned: dirs=147128 files=1018430 bytes=19.5GB errors=0 elapsed=7s[2Kscanned: dirs=151341 files=1054468 bytes=19.7GB errors=0 elapsed=7s[2Kscanned: dirs=154743 files=1091457 bytes=19.9GB errors=0 elapsed=8s[2Kscanned: dirs=157750 files=1129348 bytes=20.1GB errors=0 elapsed=8s[2Kscanned: dirs=159474 files=1160561 bytes=20.3GB errors=0 elapsed=8s[2Kscanned: dirs=164133 files=1194052 bytes=21.0GB errors=0 elapsed=8s[2Kscanned: dirs=167445 files=1236478 bytes=21.1GB errors=0 elapsed=9s[2Kscanned: dirs=171762 files=1275889 bytes=21.4GB errors=0 elapsed=9s[2Kscanned: dirs=177281 files=1312671 bytes=21.9GB errors=0 elapsed=9s[2Kscanned: dirs=182358 files=1352020 bytes=22.2GB errors=0 elapsed=9s[2Kscanned: dirs=186398 files=1396191 bytes=22.5GB errors=0 elapsed=10s[2Kscanned: dirs=190610 files=1440257 bytes=22.8GB errors=0 elapsed=10s[2Kscanned: dirs=195090 files=1476270 bytes=23.5GB errors=0 elapsed=10s[2Kscanned: dirs=200077 files=1519056 bytes=23.7GB errors=0 elapsed=10s[2Kscanned: dirs=205672 files=1560524 bytes=24.0GB errors=0 elapsed=11s[2Kscanned: dirs=210702 files=1595277 bytes=24.3GB errors=0 elapsed=11s[2Kscanned: dirs=215582 files=1626942 bytes=24.6GB errors=0 elapsed=11s[2Kscanned: dirs=219379 files=1658556 bytes=24.9GB errors=0 elapsed=11s[2Kscanned: dirs=224580 files=1697741 bytes=25.0GB errors=0 elapsed=12s[2Kscanned: dirs=228115 files=1738526 bytes=25.2GB errors=0 elapsed=12s[2Kscanned: dirs=233510 files=1764449 bytes=25.3GB errors=0 elapsed=12s[2Kscanned: dirs=237747 files=1798554 bytes=25.6GB errors=0 elapsed=12s[2Kscanned: dirs=240145 files=1828516 bytes=25.7GB errors=0 elapsed=13s[2Kscanned: dirs=244534 files=1861507 bytes=26.2GB errors=0 elapsed=13s[2Kscanned: dirs=250037 files=1888261 bytes=26.7GB errors=0 elapsed=13s[2Kscanned: dirs=250350 files=1890917 bytes=26.7GB errors=0 elapsed=13s[2Kscanned: dirs=250350 files=1892092 bytes=26.7GB errors=0 elapsed=14s[2Kscanned: dirs=250350 files=1893355 bytes=26.7GB errors=0 elapsed=14s[2Kscanned: dirs=250350 files=1895945 bytes=26.8GB errors=0 elapsed=14s[2Kscanned: dirs=250350 files=1901990 bytes=26.8GB errors=0 elapsed=14s[2Kscanned: dirs=250350 files=1916745 bytes=26.8GB errors=0 elapsed=15s[2Kscanned: dirs=250350 files=1932699 bytes=26.8GB errors=0 elapsed=15s[2Kscanned: dirs=250350 files=1948703 bytes=26.8GB errors=0 elapsed=15s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=15s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=16s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=16s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=16s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=16s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=17s[2Kscanned: dirs=250350 files=1958948 bytes=26.8GB errors=0 elapsed=17s[2K[/Users/k.lebedev/Developer] 27.2GB
+├─ @mail-core.......................................... 5.69GB
+│  ├─ wisehub............................................. 3.27GB
+│  │  ├─ .git................................................ 2.42GB
+│  │  │  ├─ objects............................................. 2.41GB
+│  │  │  │  └─ other (<2.00GB each, 233 items) 2.41GB
+│  │  │  │      top-3:
+│  │  │  │      pack.................................................... 2.00GB
+│  │  │  │      62...................................................... 27.2MB
+│  │  │  │      ea...................................................... 27.1MB
+│  │  │  │      rest (230 items) 366MB
+│  │  │  │      types:
+│  │  │  └─ other (<2.00GB each, 13 items) 9.85MB
+│  │  │      top-3:
+│  │  │      cursor.................................................. 9.62MB
+│  │  │      index................................................... 119KB
+│  │  │      logs.................................................... 63.3KB
+│  │  │      rest (10 items) 43.7KB
+│  │  │      types:
+│  │  │      no-ext.................. 127KB (8 files)
+│  │  └─ other (<2.00GB each, 56 items) 873MB
+│  │      top-3:
+│  │      node_modules............................................ 688MB
+│  │      .storage................................................ 93.7MB
+│  │      wisehub.app.js.map...................................... 34.5MB
+│  │      rest (53 items) 56.9MB
+│  │      types:
+│  │      .map.................... 34.5MB (1 files)
+│  │      .js..................... 9.08MB (5 files)
+│  │      .json................... 1.93MB (5 files)
+│  │      rest types 243KB (25 files)
+│  └─ other (<2.00GB each, 28 items) 2.42GB
+│      top-3:
+│      foundation.............................................. 338MB
+│      std..................................................... 323MB
+│      communicator............................................ 287MB
+│      rest (25 items) 1.49GB
+│      types:
+│      .rdb.................... 7.72MB (1 files)
+│      .md..................... 31.1KB (3 files)
+│      .ds_store............... 18.0KB (1 files)
+│      rest types 1007B (3 files)
+├─ octavius............................................ 3.05GB
+│  ├─ node_modules........................................ 2.23GB
+│  │  └─ other (<2.00GB each, 2235 items) 2.23GB
+│  │      top-3:
+│  │      @mail................................................... 630MB
+│  │      @formatjs............................................... 149MB
+│  │      @mail-core.............................................. 132MB
+│  │      rest (2232 items) 1.34GB
+│  │      types:
+│  │      .json................... 2.57MB (1 files)
+│  │      .ds_store............... 442KB (1 files)
+│  └─ other (<2.00GB each, 78 items) 837MB
+│      top-3:
+│      .git.................................................... 364MB
+│      allure-results.......................................... 127MB
+│      cache................................................... 116MB
+│      rest (75 items) 230MB
+│      types:
+│      .json................... 2.65MB (9 files)
+│      .md..................... 67.2KB (5 files)
+│      .js..................... 52.7KB (11 files)
+│      rest types 87.2KB (20 files)
+└─ other (<2.00GB each, 154 items) 18.5GB
+    top-3:
+    mail-antispam-k8s....................................... 1.56GB
+    @calendar............................................... 1.51GB
+    @vk-workspace........................................... 1.45GB
+    rest (151 items) 14.0GB
+    types:
+    .zip.................... 23.8MB (1 files)
+    .json................... 20.8MB (3 files)
+    .png.................... 3.01MB (1 files)
+    rest types 98.3KB (11 files)

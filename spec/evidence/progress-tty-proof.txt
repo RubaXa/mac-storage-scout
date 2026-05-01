@@ -1,0 +1,13 @@
+Captured from real TTY run on 2026-05-01 (command interrupted manually with Ctrl+C):
+command: ./bin/mss scan --threshold 2GB --top 3 --workers 1 /Users/k.lebedev/Developer
+
+scanned: dirs=300 files=3146 bytes=342MB errors=0 elapsed=0s
+scanned: dirs=708 files=4836 bytes=538MB errors=0 elapsed=0s
+scanned: dirs=7395 files=134645 bytes=1.13GB errors=0 elapsed=5s
+scanned: dirs=12238 files=166809 bytes=1.32GB errors=0 elapsed=6s
+scanned: dirs=19592 files=212375 bytes=1.68GB errors=0 elapsed=9s
+scanned: dirs=25275 files=246424 bytes=2.10GB errors=0 elapsed=11s
+scanned: dirs=29639 files=262122 bytes=3.71GB errors=0 elapsed=12s
+scanned: dirs=33988 files=268192 bytes=5.18GB errors=0 elapsed=13s
+scanned: dirs=35454 files=279370 bytes=5.27GB errors=0 elapsed=13s
+^C
