@@ -194,7 +194,7 @@ After capturing results, update `spec/mac-storage-scout.macos-performance.refere
 ## 6. Execution Log (AI-to-AI)
 ## EXEC_LOG_META
 - task_id: TSK-09
-- status: pending
+- status: done
 - canonical_log: self (this task file)
 
 ## EXEC_TIMELINE
