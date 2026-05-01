@@ -4,6 +4,7 @@
 - Primary spec: [mac-storage-scout.spec.md](./mac-storage-scout.spec.md)
 
 ## Supporting Artifacts
+- [ACTION-LOG.md](./ACTION-LOG.md)
 - [mac-storage-scout.macos-performance.reference.md](./mac-storage-scout.macos-performance.reference.md)
 - [mac-storage-scout.output-format.source-of-truth.md](./mac-storage-scout.output-format.source-of-truth.md)
 - [SESSION-HANDOFF.md](./SESSION-HANDOFF.md)
