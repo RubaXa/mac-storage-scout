@@ -3,6 +3,7 @@
 package aggregate
 
 import (
+	"fmt"
 	"mac-storage-scout/internal/mss/domain"
 	"path/filepath"
 	"sort"
@@ -12,6 +13,10 @@ type MssTreeAggregatorAdapter struct{}
 
 // @implements {MssNodeAggregatorPort} internal/mss/ports/mss_node_aggregator_port.go
 func (a *MssTreeAggregatorAdapter) BuildTree(events []domain.MssWalkEvent, cfg domain.MssScanConfig) ([]*domain.MssNode, error) {
+	if cfg.TopN < 1 {
+		return nil, fmt.Errorf("topN must be >= 1")
+	}
+
 	nodeByPath := map[string]*domain.MssNode{}
 	childByParent := map[string][]*domain.MssNode{}
 
@@ -136,9 +141,6 @@ func applyThreshold(n *domain.MssNode, threshold int64, topN int) {
 
 	sortNodes(small)
 	limit := topN
-	if limit <= 0 {
-		limit = 5
-	}
 	if limit > len(small) {
 		limit = len(small)
 	}

@@ -18,6 +18,7 @@ type MssScanConfig struct {
 	SizeMode       MssSizeMode
 	Workers        int
 	Progress       bool
+	PlainOutput    bool
 	OneFileSystem  bool
 }
 

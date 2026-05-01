@@ -40,7 +40,7 @@ func main() {
 
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "usage:")
-	fmt.Fprintln(os.Stderr, "  mss scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [paths...]")
+	fmt.Fprintln(os.Stderr, "  mss scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [--plain] [paths...]")
 	fmt.Fprintln(os.Stderr, "  mss delete [--dry-run] [--yes] <path> [path...]")
 }
 
@@ -53,6 +53,7 @@ func runScan(args []string) {
 	workers := fsCmd.Int("workers", runtime.NumCPU()*2, "worker count")
 	progressOn := fsCmd.Bool("progress", true, "show progress")
 	noProgress := fsCmd.Bool("no-progress", false, "disable progress")
+	plain := fsCmd.Bool("plain", false, "force ASCII-only report output")
 	if err := fsCmd.Parse(args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
@@ -67,6 +68,10 @@ func runScan(args []string) {
 	mode := domain.MssSizeMode(strings.ToLower(*sizeMode))
 	if mode != domain.MssSizeModeLogical && mode != domain.MssSizeModeAllocated {
 		fmt.Fprintln(os.Stderr, "invalid --size-mode: expected logical|allocated")
+		os.Exit(2)
+	}
+	if err := validateTopN(*top); err != nil {
+		fmt.Fprintln(os.Stderr, "invalid --top:", err)
 		os.Exit(2)
 	}
 
@@ -91,6 +96,7 @@ func runScan(args []string) {
 		SizeMode:       mode,
 		Workers:        *workers,
 		Progress:       *progressOn && !*noProgress,
+		PlainOutput:    *plain,
 	}
 
 	orch := &app.MssScanOrchestrator{
@@ -170,13 +176,34 @@ func runDelete(args []string) {
 
 func guardDeletePath(path string) error {
 	clean := filepath.Clean(path)
-	if clean == "/" {
-		return fmt.Errorf("refusing to delete root")
+	canonical := clean
+	if resolved, err := filepath.EvalSymlinks(clean); err == nil {
+		canonical = filepath.Clean(resolved)
 	}
+
+	if isProtectedDeletePath(clean) || isProtectedDeletePath(canonical) {
+		return fmt.Errorf("refusing protected path: %s", path)
+	}
+	return nil
+}
+
+func isProtectedDeletePath(path string) bool {
+	if path == "/" {
+		return true
+	}
+	lp := strings.ToLower(path)
 	for _, banned := range []string{"/System", "/usr", "/bin", "/sbin", "/private/var/vm"} {
-		if clean == banned {
-			return fmt.Errorf("refusing protected path: %s", banned)
+		lb := strings.ToLower(banned)
+		if lp == lb || strings.HasPrefix(lp, lb+"/") {
+			return true
 		}
+	}
+	return false
+}
+
+func validateTopN(top int) error {
+	if top < 1 {
+		return fmt.Errorf("top must be >= 1")
 	}
 	return nil
 }

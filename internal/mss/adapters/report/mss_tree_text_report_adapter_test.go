@@ -50,3 +50,35 @@ func TestRenderContainsOtherBlock(t *testing.T) {
 		t.Fatalf("missing types block: %s", out)
 	}
 }
+
+func TestRenderPlainOutputUsesASCIIOnlyLabels(t *testing.T) {
+	r := &MssTreeTextReportAdapter{}
+	root := &domain.MssNode{
+		Path:      "/root",
+		Name:      "/root",
+		Kind:      domain.MssEntryKindDir,
+		SizeBytes: 700,
+		Children: []*domain.MssNode{{
+			Name:      "big.bin",
+			Kind:      domain.MssEntryKindFile,
+			SizeBytes: 700,
+		}},
+	}
+
+	cfg := domain.MssScanConfig{ThresholdBytes: 500, TopN: 5, SizeMode: domain.MssSizeModeLogical, PlainOutput: true}
+	var buf bytes.Buffer
+	if err := r.Render(&buf, []*domain.MssNode{root}, cfg); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+
+	if strings.Contains(out, "🛰️") || strings.Contains(out, "📂") || strings.Contains(out, "📁") {
+		t.Fatalf("plain output must not contain emoji: %s", out)
+	}
+	if !strings.Contains(out, "mss :: mac-storage-scout") {
+		t.Fatalf("missing plain header: %s", out)
+	}
+	if !strings.Contains(out, "threshold: 500B | top: 5 | size-mode: logical") {
+		t.Fatalf("missing plain config line: %s", out)
+	}
+}

@@ -32,6 +32,9 @@
 # use allocated blocks instead of logical file size
 ./bin/mss scan --size-mode allocated --threshold 500MB --top 5 --profile macos-core
 
+# force ASCII/plain output (no emoji icons)
+./bin/mss scan --profile macos-core --threshold 500MB --top 5 --plain
+
 # delete workflow
 ./bin/mss delete --dry-run <path> [path...]
 ./bin/mss delete --yes <path> [path...]
@@ -41,6 +44,7 @@
 For each folder section:
 - Items `>= threshold` are printed explicitly.
 - Items `< threshold` are grouped into `other`.
+- `--top` must be `>= 1`.
 - Each `other` uses one identical structure:
   - `top-N`
   - `rest`
