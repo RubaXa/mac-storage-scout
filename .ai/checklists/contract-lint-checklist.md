@@ -9,6 +9,9 @@
   - findings (if any)
 
 ## Commands
+0. Ensure commit hook is active:
+   - `git config --get core.hooksPath` -> must be `.githooks`
+   - `.githooks/pre-commit` must be executable
 1. Production, short report:
    - `go run ./cmd/mss-contract-lint --root . --mode short --format text`
 2. Production, full confirmation report:
@@ -23,3 +26,7 @@
 ## Severity semantics
 - `error`: required tags missing (`@purpose`, `@consumer`, conditional `@param`, `@returns`).
 - `warn`: required tags missing; full contract recheck suggested (`@pre`, `@post`, `@invariant`, `@implements`, `@see`).
+
+## Commit Policy
+- Any commit must pass pre-commit hook contract lint.
+- If lint fails, commit is rejected until violations are fixed.

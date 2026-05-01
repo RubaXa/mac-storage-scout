@@ -72,10 +72,16 @@ Enable deterministic autonomous work on this repository with minimal ambiguity.
 cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
 go build -o ./bin/mss ./cmd/mss
+go run ./cmd/mss-contract-lint --root . --mode short --format text
 ./bin/mss scan --profile macos-core --threshold 500MB --top 5
 ./bin/mss delete --dry-run <path> [path...]
 ./bin/mss delete --yes <path> [path...]
 ```
+
+## COMMIT_GATES
+- pre-commit hook path: `.githooks/pre-commit` (required)
+- local git config must set: `core.hooksPath=.githooks`
+- commit must be blocked if `go run ./cmd/mss-contract-lint --root . --mode short --format text` returns non-zero
 
 ## DOCUMENTATION_SYNC_RULES
 When behavior/UX/CLI changes:

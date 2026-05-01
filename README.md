@@ -114,3 +114,12 @@ cd /Users/k.lebedev/Developer/mac-storage-scout
 go test ./...
 go build -o ./bin/mss ./cmd/mss
 ```
+
+## 🧱 Contract Lint Gate
+```bash
+# one-time repo setup
+git config core.hooksPath .githooks
+
+# manual run (same check as pre-commit hook)
+go run ./cmd/mss-contract-lint --root . --mode short --format text
+```

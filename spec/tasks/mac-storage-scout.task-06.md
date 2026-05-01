@@ -76,6 +76,9 @@
 - 2026-05-01T14:19:39Z: verification delete flow (`--dry-run` and `--yes` on temp fixture) -> PASS
 - 2026-05-01T15:00:05Z: added explicit `@consumer` tags to contract roots (ports/adapters/orchestrator/domain) and updated rules/spec references
 - 2026-05-01T15:00:05Z: verification `go test ./...` after `@consumer` pass -> PASS
+- 2026-05-01T15:07:18Z: implemented `mss-contract-lint` AST/regexp CLI and generated full entity index report
+- 2026-05-01T15:07:18Z: contract tag coverage raised to zero violations (`scanned=74, violations=0`)
+- 2026-05-01T15:07:18Z: added commit gate `.githooks/pre-commit` and enforced `core.hooksPath=.githooks`
 
 ## EXEC_POINTER
 For cross-task summary use `spec/mac-storage-scout.spec.md` section `Decision Summary (Root-Level)`.
