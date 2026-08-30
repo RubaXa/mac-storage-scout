@@ -159,6 +159,7 @@ Main flow:
   - Invariants:
     - Default mode does not follow symlinks.
     - Permission/race errors are counted and do not abort whole scan.
+    - Queue ownership remains in the scheduler; worker discovery cannot deadlock on queue backpressure.
 
 #### Port: MssNodeAggregatorPort
 - **Type:** Port (Interface)

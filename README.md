@@ -48,6 +48,7 @@ Big stuff is explicit. Small stuff is grouped. One glance — you know where the
 - 🧭 One consistent detail model: big items explicit, small items aggregated into `other` (with `top-N`, `rest`, `types`).
 - 🛡️ Safe cleanup flow — `--dry-run` first, `--yes` to commit, protected roots refused.
 - 🧪 Built for real, noisy live systems — permission errors and races are tolerated, not fatal.
+- 🧵 Wide directory trees are drained by a scheduler-owned queue without worker deadlocks.
 - 🎨 Emoji mode for humans, `--plain` mode for pipes and CI.
 
 ## 🚀 Quick Start
