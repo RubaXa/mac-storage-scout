@@ -62,19 +62,21 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 	}
 
 	// START_INITIALIZE_WORKER_POOL
-	// invariant: queue depth tracks pending jobs (+1 enqueue, -1 before processing).
-	jobs := make(chan mssQueueItem, 65536)
-	var taskWG sync.WaitGroup
+	// invariant: queue depth tracks pending jobs (+1 accepted, -1 before processing).
+	// The scheduler owns the pending queue so workers never block while publishing
+	// descendants into a full jobs channel.
+	jobs := make(chan mssQueueItem)
+	discovered := make(chan mssQueueItem, workers)
+	done := make(chan struct{}, workers)
 	var workersWG sync.WaitGroup
+	var schedulerWG sync.WaitGroup
 	var dirs, files, bytesSeen, errs, qDepth int64
 
 	enqueue := func(item mssQueueItem) {
-		taskWG.Add(1)
 		atomic.AddInt64(&qDepth, 1)
 		select {
-		case jobs <- item:
+		case discovered <- item:
 		case <-ctx.Done():
-			taskWG.Done()
 			atomic.AddInt64(&qDepth, -1)
 		}
 	}
@@ -83,28 +85,80 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 	for i := 0; i < workers; i++ {
 		go func() {
 			defer workersWG.Done()
-			for item := range jobs {
-				atomic.AddInt64(&qDepth, -1)
-				a.walkPath(ctx, cfg, item.path, item.root, emit, &dirs, &files, &bytesSeen, &errs, enqueue)
-				taskWG.Done()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case item, ok := <-jobs:
+					if !ok {
+						return
+					}
+					atomic.AddInt64(&qDepth, -1)
+					a.walkPath(ctx, cfg, item.path, item.root, emit, &dirs, &files, &bytesSeen, &errs, enqueue)
+					done <- struct{}{}
+				}
 			}
 		}()
 	}
 
+	initial := make([]mssQueueItem, 0, len(cfg.Paths))
 	for _, p := range cfg.Paths {
 		ap := mssExpandPath(p)
-		enqueue(mssQueueItem{path: ap, root: ap})
+		initial = append(initial, mssQueueItem{path: ap, root: ap})
+		atomic.AddInt64(&qDepth, 1)
 	}
 	// END_INITIALIZE_WORKER_POOL
 
-	// START_CLOSE_QUEUE_AFTER_DRAIN
-	// purpose: close jobs channel exactly once after all enqueued work is completed.
+	// START_SCHEDULE_WORK_AFTER_DISCOVERY
+	// purpose: serialize queue ownership and close workers after all active and discovered work completes.
+	schedulerWG.Add(1)
 	go func() {
-		taskWG.Wait()
-		close(jobs)
-	}()
-	// END_CLOSE_QUEUE_AFTER_DRAIN
+		defer schedulerWG.Done()
+		queue := initial
+		pending := int64(len(queue))
+		for {
+			// A worker publishes descendants before its completion signal. Drain
+			// already-published discoveries before deciding that work is finished.
+			for {
+				select {
+				case item := <-discovered:
+					queue = append(queue, item)
+					pending++
+				default:
+					goto discoveriesDrained
+				}
+			}
 
+		discoveriesDrained:
+			if pending == 0 {
+				close(jobs)
+				return
+			}
+
+			var next mssQueueItem
+			var dispatch chan<- mssQueueItem
+			if len(queue) > 0 {
+				next = queue[0]
+				dispatch = jobs
+			}
+
+			select {
+			case item := <-discovered:
+				queue = append(queue, item)
+				pending++
+			case dispatch <- next:
+				queue = queue[1:]
+			case <-done:
+				pending--
+			case <-ctx.Done():
+				close(jobs)
+				return
+			}
+		}
+	}()
+	// END_SCHEDULE_WORK_AFTER_DISCOVERY
+
+	schedulerWG.Wait()
 	workersWG.Wait()
 
 	counters.DirsScanned = atomic.LoadInt64(&dirs)

@@ -7,7 +7,9 @@ import (
 	"mac-storage-scout/internal/mss/domain"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
+	"time"
 )
 
 func TestMssGoFsWalkerAdapterWalk(t *testing.T) {
@@ -94,4 +96,49 @@ func TestMssGoFsWalkerAdapterWalk(t *testing.T) {
 			t.Errorf("Walk(...) error events = %d, want > 0", errorEvents)
 		}
 	})
+}
+
+func TestMssGoFsWalkerAdapterWalkDoesNotDeadlockWhenQueueBackpressureBuilds(t *testing.T) {
+	root := t.TempDir()
+
+	// START_SETUP_LARGE_DIRECTORY_QUEUE
+	// purpose: fill the historical worker-to-worker jobs buffer with directory work.
+	const directoryCount = 65537
+	for i := 0; i < directoryCount; i++ {
+		path := filepath.Join(root, "dir-"+strconv.Itoa(i))
+		if err := os.Mkdir(path, 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", path, err)
+		}
+	}
+	// END_SETUP_LARGE_DIRECTORY_QUEUE
+
+	cfg := domain.MssScanConfig{
+		Paths:          []string{root},
+		ThresholdBytes: 1,
+		TopN:           1,
+		SizeMode:       domain.MssSizeModeLogical,
+		Workers:        1,
+	}
+
+	// START_TRIGGER_WALK_WITH_QUEUE_BACKPRESSURE
+	// purpose: run the single-worker case that previously blocked on a full jobs channel.
+	adapter := &MssGoFsWalkerAdapter{}
+	finished := make(chan domain.MssCounters, 1)
+	go func() {
+		finished <- adapter.Walk(context.Background(), cfg, func(domain.MssWalkEvent) {})
+	}()
+	// END_TRIGGER_WALK_WITH_QUEUE_BACKPRESSURE
+
+	// START_ASSERT_WALK_TERMINATES_AFTER_QUEUE_BACKPRESSURE
+	select {
+	case counters := <-finished:
+		if counters.Errors != 0 {
+			t.Errorf("Walk(...) errors = %d, want 0", counters.Errors)
+		}
+		if counters.DirsScanned != directoryCount+1 {
+			t.Errorf("Walk(...) dirs scanned = %d, want %d", counters.DirsScanned, directoryCount+1)
+		}
+	case <-time.After(15 * time.Second):
+		t.Fatal("Walk(...) did not terminate after queue backpressure")
+	}
 }
