@@ -45,6 +45,32 @@ type MssCounters struct {
 	StartedAt    time.Time
 }
 
+// MssVolumeUsage describes capacity and availability reported by the mounted filesystem.
+//
+// @purpose Carry the authoritative volume-level baseline used for scan reconciliation.
+// @consumer internal/mss/app/mss_volume_audit_orchestrator.go
+type MssVolumeUsage struct {
+	Path           string
+	CapacityBytes  int64
+	AvailableBytes int64
+	OccupiedBytes  int64
+}
+
+// MssVolumeAudit reconciles readable file allocations with volume-level occupancy.
+//
+// @purpose Make unexplained disk usage explicit instead of silently omitting it.
+// @consumer internal/mss/adapters/report/mss_volume_audit_text_report_adapter.go
+type MssVolumeAudit struct {
+	ScanRoot         string
+	Usage            MssVolumeUsage
+	AccountedBytes   int64
+	UnaccountedBytes int64
+	OvercountBytes   int64
+	GrowthDuringScan int64
+	Counters         MssCounters
+	Roots            []*MssNode
+}
+
 // MssEntryKind describes filesystem entry kind.
 //
 // @purpose Classify entries for aggregation/reporting logic.

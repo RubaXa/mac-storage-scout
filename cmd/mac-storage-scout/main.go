@@ -34,6 +34,8 @@ func main() {
 	switch os.Args[1] {
 	case "scan":
 		runScan(os.Args[2:])
+	case "audit":
+		runAudit(os.Args[2:])
 	case "delete":
 		runDelete(os.Args[2:])
 	default:
@@ -49,6 +51,7 @@ func main() {
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [--plain] [paths...]")
+	fmt.Fprintln(os.Stderr, "  mac-storage-scout audit [--volume /System/Volumes/Data] [--threshold 5GB] [--top 10] [--plain]")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout delete [--dry-run] [--yes] <path> [path...]")
 }
 
@@ -138,6 +141,95 @@ func runScan(args []string) {
 		os.Exit(1)
 	}
 	// END_RUN_SCAN_PIPELINE
+}
+
+// runAudit executes whole-volume scan reconciliation.
+//
+// @purpose Explain occupied volume bytes with readable paths and an explicit unaccounted remainder.
+// @consumer End users invoking mac-storage-scout audit.
+// @param args Raw audit subcommand args.
+func runAudit(args []string) {
+	// START_PARSE_AUDIT_FLAGS
+	auditCmd := flag.NewFlagSet("audit", flag.ContinueOnError)
+	volume := auditCmd.String("volume", mssDefaultAuditVolume(), "root to scan and reconcile against its containing volume")
+	threshold := auditCmd.String("threshold", "5GB", "detail threshold")
+	top := auditCmd.Int("top", 10, "top items in other bucket")
+	workers := auditCmd.Int("workers", runtime.NumCPU()*2, "worker count")
+	progressOn := auditCmd.Bool("progress", true, "show progress")
+	noProgress := auditCmd.Bool("no-progress", false, "disable progress")
+	plain := auditCmd.Bool("plain", false, "force ASCII-only report output")
+	if err := auditCmd.Parse(args); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	if len(auditCmd.Args()) > 0 {
+		fmt.Fprintln(os.Stderr, "audit: positional paths are not supported; use --volume")
+		os.Exit(2)
+	}
+	// END_PARSE_AUDIT_FLAGS
+
+	thBytes, err := domain.MssParseBytes(*threshold)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "invalid --threshold:", err)
+		os.Exit(2)
+	}
+	if err := validateTopN(*top); err != nil {
+		fmt.Fprintln(os.Stderr, "invalid --top:", err)
+		os.Exit(2)
+	}
+
+	volumePath, err := filepath.Abs(expandPath(*volume))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "invalid --volume:", err)
+		os.Exit(2)
+	}
+	cfg := domain.MssScanConfig{
+		Paths:          []string{volumePath},
+		ThresholdBytes: thBytes,
+		TopN:           *top,
+		SizeMode:       domain.MssSizeModeAllocated,
+		Workers:        *workers,
+		Progress:       *progressOn && !*noProgress,
+		PlainOutput:    *plain,
+		OneFileSystem:  true,
+	}
+
+	scanner := &app.MssScanOrchestrator{
+		Walker:     &fsadapter.MssGoFsWalkerAdapter{},
+		Aggregator: &aggregate.MssTreeAggregatorAdapter{},
+		Progress:   &progress.MssAnsiProgressAdapter{},
+	}
+	auditor := &app.MssVolumeAuditOrchestrator{
+		Scanner: scanner,
+		Usage:   &fsadapter.MssStatfsVolumeUsageAdapter{},
+	}
+
+	// START_RUN_VOLUME_AUDIT
+	// invariant: volume accounting is sampled before and after the same allocated-size scan.
+	audit, err := auditor.Run(context.Background(), volumePath, cfg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "audit failed:", err)
+		os.Exit(1)
+	}
+	renderer := &report.MssVolumeAuditTextReportAdapter{}
+	if err := renderer.Render(os.Stdout, audit, cfg); err != nil {
+		fmt.Fprintln(os.Stderr, "render failed:", err)
+		os.Exit(1)
+	}
+	// END_RUN_VOLUME_AUDIT
+}
+
+// mssDefaultAuditVolume returns the macOS writable Data volume when present.
+//
+// @purpose Make whole-disk audit useful without requiring operators to know APFS mount paths.
+// @consumer runAudit flag defaults.
+// @returns Existing Data volume path on macOS, otherwise filesystem root.
+func mssDefaultAuditVolume() string {
+	const dataVolume = "/System/Volumes/Data"
+	if _, err := os.Stat(dataVolume); err == nil {
+		return dataVolume
+	}
+	return string(filepath.Separator)
 }
 
 // runDelete executes delete command flow.

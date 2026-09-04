@@ -38,6 +38,12 @@ The examples below use `./bin/mac-storage-scout` so they work immediately after 
 ./bin/mac-storage-scout scan --threshold 500MB --top 5 --profile macos-core --no-progress
 ```
 
+When the reported free space is disappearing or targeted scans do not add up, audit the complete writable macOS volume first:
+```bash
+./bin/mac-storage-scout audit --threshold 5GB --top 10 --no-progress
+```
+Treat `unaccounted` as an explicit investigation result. It can include unreadable paths, APFS snapshots/shared-volume accounting, clones, reserved or purgeable space, and deleted files still held open.
+
 ## Safety Contract
 Always plan a delete first; only commit after the plan is reviewed.
 
@@ -53,7 +59,7 @@ Protected roots are refused even with `--yes`: `/`, `/System`, `/usr`, `/bin`, `
 
 ## Minimal Agent Workflow
 1. Build the binary from source (`go build ...`).
-2. Run scan with `--profile macos-core` (or a specific path).
+2. Run `audit` for a whole-volume discrepancy; otherwise scan with `--profile macos-core` (or a specific path).
 3. Propose candidate cleanup paths from the report.
 4. Run `delete --dry-run` and surface the planned freed bytes.
 5. Run `delete --yes` only after explicit user confirmation.

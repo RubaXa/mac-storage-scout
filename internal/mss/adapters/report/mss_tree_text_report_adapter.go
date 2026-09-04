@@ -45,6 +45,19 @@ func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, 
 	}
 	// END_RENDER_HEADER
 
+	a.mssRenderRootSections(w, roots, cfg)
+	return nil
+}
+
+// mssRenderRootSections writes standard threshold-aware root bodies without a report header.
+//
+// @purpose Reuse the canonical tree body in scan and volume-audit reports.
+// @consumer MssTreeTextReportAdapter.Render and MssVolumeAuditTextReportAdapter.Render.
+// @param w Output writer.
+// @param roots Aggregated roots.
+// @param cfg Scan configuration.
+func (a *MssTreeTextReportAdapter) mssRenderRootSections(w io.Writer, roots []*domain.MssNode, cfg domain.MssScanConfig) {
+	style := renderStyle{emoji: !cfg.PlainOutput}
 	// START_RENDER_ROOT_SECTIONS
 	// invariant: each root renders exactly one section body and optional separator.
 	for i, r := range roots {
@@ -59,7 +72,6 @@ func (a *MssTreeTextReportAdapter) Render(w io.Writer, roots []*domain.MssNode, 
 		a.printNodeChildren(w, r, "", cfg.ThresholdBytes, style)
 	}
 	// END_RENDER_ROOT_SECTIONS
-	return nil
 }
 
 // renderStyle controls output visual mode.
