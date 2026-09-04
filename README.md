@@ -59,6 +59,9 @@ go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 # scan key macOS roots
 ./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5
 
+# reconcile the complete writable Data volume with readable allocated files
+./bin/mac-storage-scout audit --threshold 5GB --top 10 --no-progress
+
 # scan a custom path
 ./bin/mac-storage-scout scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
 
@@ -86,10 +89,12 @@ For each folder section:
 - Each `other` always uses the same shape: `top-N`, `rest`, `types`.
 
 ## 🧰 Standard Operator Workflow
-1. Scan with `--profile macos-core`.
-2. Pick candidates (logs / caches / unused app data).
+1. Run `audit` when macOS reports more occupied space than path scans explain.
+2. Use the audit tree or `scan --profile macos-core` to pick candidates.
 3. Run `delete --dry-run`.
 4. Run `delete --yes` after confirmation.
+
+`audit` uses allocated bytes, stays on one filesystem, and prints any gap between APFS volume occupancy and readable files as `unaccounted`; it never silently treats that gap as explained.
 5. Re-scan and record reclaimed space.
 
 ## 🧱 Project Docs (Spec + Evidence)

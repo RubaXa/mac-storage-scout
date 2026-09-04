@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
@@ -27,8 +28,10 @@ type MssGoFsWalkerAdapter struct{}
 // @purpose Transport path/root pair through worker queue.
 // @consumer MssGoFsWalkerAdapter.Walk queue processing.
 type mssQueueItem struct {
-	path string
-	root string
+	path          string
+	root          string
+	rootDevice    uint64
+	hasRootDevice bool
 }
 
 // @see {MssFilesystemWalkerPort#Walk} internal/mss/ports/mss_filesystem_walker_port.go
@@ -94,7 +97,7 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 						return
 					}
 					atomic.AddInt64(&qDepth, -1)
-					a.walkPath(ctx, cfg, item.path, item.root, emit, &dirs, &files, &bytesSeen, &errs, enqueue)
+					a.walkPath(ctx, cfg, item, emit, &dirs, &files, &bytesSeen, &errs, enqueue)
 					done <- struct{}{}
 				}
 			}
@@ -104,7 +107,13 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 	initial := make([]mssQueueItem, 0, len(cfg.Paths))
 	for _, p := range cfg.Paths {
 		ap := mssExpandPath(p)
-		initial = append(initial, mssQueueItem{path: ap, root: ap})
+		item := mssQueueItem{path: ap, root: ap}
+		if cfg.OneFileSystem {
+			if fi, err := os.Lstat(ap); err == nil {
+				item.rootDevice, item.hasRootDevice = mssDeviceFromFileInfo(fi)
+			}
+		}
+		initial = append(initial, item)
 		atomic.AddInt64(&qDepth, 1)
 	}
 	// END_INITIALIZE_WORKER_POOL
@@ -178,8 +187,7 @@ func (a *MssGoFsWalkerAdapter) Walk(ctx context.Context, cfg domain.MssScanConfi
 func (a *MssGoFsWalkerAdapter) walkPath(
 	ctx context.Context,
 	cfg domain.MssScanConfig,
-	path string,
-	root string,
+	item mssQueueItem,
 	emit func(domain.MssWalkEvent),
 	dirs *int64,
 	files *int64,
@@ -187,6 +195,8 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 	errs *int64,
 	enqueue func(mssQueueItem),
 ) {
+	path := item.path
+	root := item.root
 	// START_ABORT_ON_CONTEXT_CANCEL
 	select {
 	case <-ctx.Done():
@@ -203,6 +213,11 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 	}
 	if fi.Mode()&os.ModeSymlink != 0 {
 		return
+	}
+	if cfg.OneFileSystem && item.hasRootDevice {
+		if device, ok := mssDeviceFromFileInfo(fi); ok && device != item.rootDevice {
+			return
+		}
 	}
 
 	name := filepath.Base(path)
@@ -232,7 +247,12 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 		for _, de := range entries {
 			child := filepath.Join(path, de.Name())
 			if de.IsDir() {
-				enqueue(mssQueueItem{path: child, root: root})
+				enqueue(mssQueueItem{
+					path:          child,
+					root:          root,
+					rootDevice:    item.rootDevice,
+					hasRootDevice: item.hasRootDevice,
+				})
 				continue
 			}
 			childInfo, infoErr := de.Info()
@@ -273,6 +293,23 @@ func (a *MssGoFsWalkerAdapter) walkPath(
 			Ext:        mssExtOf(name),
 		}})
 	}
+}
+
+// mssDeviceFromFileInfo extracts the filesystem device identifier from syscall metadata.
+//
+// @purpose Support one-filesystem traversal without following nested mounts.
+// @consumer MssGoFsWalkerAdapter.Walk and walkPath.
+// @param fi Filesystem metadata returned by Lstat.
+// @returns Device identifier and whether syscall metadata was available.
+func mssDeviceFromFileInfo(fi os.FileInfo) (uint64, bool) {
+	if fi == nil {
+		return 0, false
+	}
+	stat, ok := fi.Sys().(*syscall.Stat_t)
+	if !ok || stat == nil {
+		return 0, false
+	}
+	return uint64(stat.Dev), true
 }
 
 // mssExtOf extracts normalized file extension.

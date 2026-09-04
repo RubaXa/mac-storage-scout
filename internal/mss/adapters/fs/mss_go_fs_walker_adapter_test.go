@@ -142,3 +142,37 @@ func TestMssGoFsWalkerAdapterWalkDoesNotDeadlockWhenQueueBackpressureBuilds(t *t
 		t.Fatal("Walk(...) did not terminate after queue backpressure")
 	}
 }
+
+func TestMssGoFsWalkerAdapterSkipsDifferentFilesystemDevice(t *testing.T) {
+	root := t.TempDir()
+	fi, err := os.Lstat(root)
+	if err != nil {
+		t.Fatalf("Lstat(%q) unexpected error: %v", root, err)
+	}
+	device, ok := mssDeviceFromFileInfo(fi)
+	if !ok {
+		t.Skip("syscall device metadata unavailable")
+	}
+
+	var emitted int64
+	var dirs, files, bytesSeen, errs int64
+	adapter := &MssGoFsWalkerAdapter{}
+	adapter.walkPath(
+		context.Background(),
+		domain.MssScanConfig{OneFileSystem: true},
+		mssQueueItem{path: root, root: root, rootDevice: device + 1, hasRootDevice: true},
+		func(domain.MssWalkEvent) { emitted++ },
+		&dirs,
+		&files,
+		&bytesSeen,
+		&errs,
+		func(mssQueueItem) {},
+	)
+
+	if emitted != 0 {
+		t.Errorf("walkPath(different device) emitted = %d, want 0", emitted)
+	}
+	if dirs != 0 || files != 0 || errs != 0 {
+		t.Errorf("walkPath(different device) counters = dirs:%d files:%d errors:%d, want all zero", dirs, files, errs)
+	}
+}

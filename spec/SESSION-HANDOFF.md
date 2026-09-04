@@ -33,6 +33,7 @@ Continue work autonomously with deterministic behavior, consistent reporting, an
   - `~/Library/Application Support`
   - `/private/var/vm`
   - `/private/var/folders`
+- `audit` defaults to `/System/Volumes/Data`, uses allocated bytes, stays on one filesystem, and reconciles readable files against `statfs` occupancy.
 
 ## Safety Policy
 - Never delete without `--dry-run` check first.
@@ -62,6 +63,9 @@ go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
 # scan
 ./bin/mac-storage-scout scan --profile macos-core --threshold 500MB --top 5
+
+# whole-volume reconciliation
+./bin/mac-storage-scout audit --threshold 5GB --top 10 --no-progress
 
 # targeted scan
 ./bin/mac-storage-scout scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
