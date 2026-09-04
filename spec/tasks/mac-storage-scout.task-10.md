@@ -24,7 +24,7 @@
 ## 4. Execution Log (AI-to-AI)
 ## EXEC_LOG_META
 - task_id: TSK-10
-- status: in_progress
+- status: in_pr
 - canonical_log: self (this task file)
 
 ## EXEC_TIMELINE
@@ -34,3 +34,4 @@
 - 2026-09-04T12:47:00Z: full Data-volume audit reconciled 450GB occupied against 395GB readable allocation, exposed 55.4GB unaccounted, 588 access errors, and 4.03GB growth during the scan.
 - 2026-09-04T12:47:00Z: targeted follow-up attributed active growth to `/private/tmp` flow-eval fixtures created by a live `gennady` Claude session; saved proof in `spec/evidence/task-10-volume-audit-proof.txt`.
 - 2026-09-04T12:47:00Z: full Go tests, binary build, and contract lint passed (`92` entities, `0` violations).
+- 2026-09-04T12:49:00Z: rebased on current `origin/master`, pushed `ai/volume-audit`, and opened PR #10.
