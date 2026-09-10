@@ -52,6 +52,37 @@ scan-errors: <count>
 - If `--volume` names a path narrower than its containing mount, print `scan-root` and `scope-warning`.
 - The tree following the balance keeps every canonical threshold/`other` rule above.
 
+## Incident Triage Report
+
+`triage` is an outcome report, not a canonical scan-tree section. It prints:
+
+```text
+mac-storage-scout triage
+captured: <time>
+occupied: <size>
+available: <size>
+since-baseline: <time> | volume-growth: <signed-size>
+scan-errors: <count>
+baseline: <path> (updated|read-only)
+
+changes:
+  <path> delta=<signed-size> now=<size> old>7d=<size>
+
+hotspots:
+  <path> size=<size> delta=<signed-size> old>7d=<size> status=<safe|review|active|inspect> owner=<process|inactive>
+
+candidates:
+  [safe|review] <path> old-bytes=<size> — <reason>
+```
+
+- `changes` is ordered by absolute delta so reclaimed paths remain visible.
+- `hotspots` is ordered by current allocated size.
+- `safe` requires successful process evidence, no open file below the path, a generic cache/log/temp classification, and bytes older than seven days.
+- `review` is used for generated or historical structures such as worktrees, snapshots, sessions, and `node_modules`.
+- `active` and `inspect` are never presented as delete-ready candidates.
+- Candidate paths never overlap, so parent and child sizes cannot be counted twice.
+- The baseline stores path totals and volume occupancy only; no file contents are persisted.
+
 ## Forbidden Output Patterns
 - Mixing custom per-section formats.
 - Omitting `other` detail where small items exist.

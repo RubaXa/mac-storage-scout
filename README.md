@@ -47,6 +47,7 @@ Big stuff is explicit. Small stuff is grouped. One glance — you know where the
 - 📉 Shows where disk space is **actually** consumed — not 80,000 tiny files.
 - 🧭 One consistent detail model: big items explicit, small items aggregated into `other` (with `top-N`, `rest`, `types`).
 - 🛡️ Safe cleanup flow — `--dry-run` first, `--yes` to commit, protected roots refused.
+- 📈 Repeatable incident triage — persistent baseline, path deltas, age buckets, and live-process evidence.
 - 🧪 Built for real, noisy live systems — permission errors and races are tolerated, not fatal.
 - 🧵 Wide directory trees are drained by a scheduler-owned queue without worker deadlocks.
 - 🎨 Emoji mode for humans, `--plain` mode for pipes and CI.
@@ -61,6 +62,12 @@ go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
 # reconcile the complete writable Data volume with readable allocated files
 ./bin/mac-storage-scout audit --threshold 5GB --top 10 --no-progress
+
+# diagnose fast-changing agent/cache/temp areas and update a persistent baseline
+./bin/mac-storage-scout triage --threshold 500MB --top 20
+
+# include slower app data, containers, projects, and downloads
+./bin/mac-storage-scout triage --broad --threshold 1GB --top 30
 
 # scan a custom path
 ./bin/mac-storage-scout scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
@@ -89,13 +96,15 @@ For each folder section:
 - Each `other` always uses the same shape: `top-N`, `rest`, `types`.
 
 ## 🧰 Standard Operator Workflow
-1. Run `audit` when macOS reports more occupied space than path scans explain.
-2. Use the audit tree or `scan --profile macos-core` to pick candidates.
-3. Run `delete --dry-run`.
-4. Run `delete --yes` after confirmation.
+1. Run `triage` first when free space is falling. The first run records a compact baseline; later runs show growth and shrinkage automatically.
+2. Use `triage --broad` when the fast high-churn roots do not explain the loss.
+3. Run `audit` when path totals still do not reconcile with APFS volume occupancy.
+4. Review `safe`, `review`, `active`, and `inspect` evidence. `safe` is only emitted when process attribution succeeded and found no open files.
+5. Run `delete --dry-run` and then `delete --yes` after confirmation.
 
 `audit` uses allocated bytes, stays on one filesystem, and prints any gap between APFS volume occupancy and readable files as `unaccounted`; it never silently treats that gap as explained.
-5. Re-scan and record reclaimed space.
+
+`triage` scans common volatile macOS locations rather than the complete disk. It stores only path totals and capture time in `~/.local/state/mac-storage-scout/triage-v1.json`; it does not store file contents. Explicit positional paths replace the defaults, and `--no-save` preserves the existing baseline.
 
 ## 🧱 Project Docs (Spec + Evidence)
 - Main spec: `spec/mac-storage-scout.spec.md`

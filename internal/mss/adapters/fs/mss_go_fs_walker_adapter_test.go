@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 )
@@ -44,7 +45,10 @@ func TestMssGoFsWalkerAdapterWalk(t *testing.T) {
 
 		adapter := &MssGoFsWalkerAdapter{}
 		var events []domain.MssWalkEvent
+		var eventsMu sync.Mutex
 		counters := adapter.Walk(context.Background(), cfg, func(ev domain.MssWalkEvent) {
+			eventsMu.Lock()
+			defer eventsMu.Unlock()
 			events = append(events, ev)
 		})
 

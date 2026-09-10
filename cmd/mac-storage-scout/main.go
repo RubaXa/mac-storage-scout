@@ -12,11 +12,14 @@ import (
 	fsadapter "mac-storage-scout/internal/mss/adapters/fs"
 	"mac-storage-scout/internal/mss/adapters/progress"
 	"mac-storage-scout/internal/mss/adapters/report"
+	stateadapter "mac-storage-scout/internal/mss/adapters/state"
 	"mac-storage-scout/internal/mss/app"
 	"mac-storage-scout/internal/mss/domain"
+	"mac-storage-scout/internal/mss/ports"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 )
@@ -36,6 +39,8 @@ func main() {
 		runScan(os.Args[2:])
 	case "audit":
 		runAudit(os.Args[2:])
+	case "triage":
+		runTriage(os.Args[2:])
 	case "delete":
 		runDelete(os.Args[2:])
 	default:
@@ -52,7 +57,160 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [--plain] [paths...]")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout audit [--volume /System/Volumes/Data] [--threshold 5GB] [--top 10] [--plain]")
+	fmt.Fprintln(os.Stderr, "  mac-storage-scout triage [--broad] [--state <path>] [--threshold 500MB] [--top 20] [--no-save] [paths...]")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout delete [--dry-run] [--yes] <path> [path...]")
+}
+
+// runTriage executes fast high-churn disk incident diagnosis.
+//
+// @purpose Compare common volatile macOS paths with a persistent baseline and process evidence.
+// @consumer End users invoking mac-storage-scout triage.
+// @param args Raw triage subcommand args.
+func runTriage(args []string) {
+	triageCmd := flag.NewFlagSet("triage", flag.ContinueOnError)
+	statePath := triageCmd.String("state", mssDefaultTriageStatePath(), "persistent baseline JSON path")
+	threshold := triageCmd.String("threshold", "500MB", "visible hotspot threshold")
+	top := triageCmd.Int("top", 20, "maximum hotspots and candidates")
+	noSave := triageCmd.Bool("no-save", false, "read baseline without updating it")
+	noProcesses := triageCmd.Bool("no-processes", false, "skip best-effort lsof attribution")
+	broad := triageCmd.Bool("broad", false, "also scan app data, containers, projects, and downloads")
+	if err := triageCmd.Parse(args); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	thresholdBytes, err := domain.MssParseBytes(*threshold)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "invalid --threshold:", err)
+		os.Exit(2)
+	}
+	if err := validateTopN(*top); err != nil {
+		fmt.Fprintln(os.Stderr, "invalid --top:", err)
+		os.Exit(2)
+	}
+	paths := triageCmd.Args()
+	if len(paths) == 0 {
+		paths = mssDefaultTriagePaths(*broad)
+	} else {
+		paths = mssExistingNonOverlappingPaths(paths)
+	}
+	if len(paths) == 0 {
+		fmt.Fprintln(os.Stderr, "triage: no existing paths to scan")
+		os.Exit(2)
+	}
+	processProbe := ports.MssProcessUsageProbePort(nil)
+	if !*noProcesses {
+		processProbe = &fsadapter.MssLsofProcessProbeAdapter{}
+	}
+	orchestrator := &app.MssTriageOrchestrator{
+		Collector: &fsadapter.MssTriageCollectorAdapter{},
+		State:     &stateadapter.MssJSONTriageStateAdapter{},
+		Processes: processProbe,
+		Usage:     &fsadapter.MssStatfsVolumeUsageAdapter{},
+	}
+	cfg := domain.MssTriageConfig{
+		Paths:          paths,
+		StatePath:      expandPath(*statePath),
+		ThresholdBytes: thresholdBytes,
+		TopN:           *top,
+		SaveBaseline:   !*noSave,
+		Now:            time.Now(),
+	}
+	triage, err := orchestrator.Run(context.Background(), cfg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "triage failed:", err)
+		os.Exit(1)
+	}
+	if err := (&report.MssTriageTextReportAdapter{}).Render(os.Stdout, triage, cfg); err != nil {
+		fmt.Fprintln(os.Stderr, "render failed:", err)
+		os.Exit(1)
+	}
+}
+
+// mssDefaultTriagePaths discovers common high-churn macOS paths without app-specific configuration.
+//
+// @purpose Cover agent state, package caches, app data, temp, swap, and update staging in one fast workflow.
+// @consumer runTriage default path resolution.
+// @param broad Include slower application, container, project, and download roots.
+// @returns Existing, normalized, non-overlapping roots.
+func mssDefaultTriagePaths(broad bool) []string {
+	home, _ := os.UserHomeDir()
+	paths := []string{
+		filepath.Join(home, "Library", "Caches"),
+		"/private/tmp",
+		os.TempDir(),
+		"/private/var/vm",
+		"/System/Volumes/Update",
+	}
+	for _, relative := range []string{
+		".cache", ".local/share", ".npm", ".pnpm-store", ".yarn", ".gradle", ".m2",
+		".cargo", ".rustup", ".docker", ".colima", ".codex", ".claude", ".gennady", ".Trash",
+	} {
+		paths = append(paths, filepath.Join(home, relative))
+	}
+	if broad {
+		for _, relative := range []string{
+			"Library/Application Support", "Library/Containers", "Library/Group Containers", "Developer", "Downloads",
+		} {
+			paths = append(paths, filepath.Join(home, relative))
+		}
+	}
+	return mssExistingNonOverlappingPaths(paths)
+}
+
+// mssExistingNonOverlappingPaths normalizes roots and removes duplicate nested scans.
+//
+// @purpose Prevent double counting and redundant traversal in triage.
+// @consumer runTriage path resolution.
+// @param paths Raw candidate roots.
+// @returns Existing absolute roots sorted lexicographically.
+func mssExistingNonOverlappingPaths(paths []string) []string {
+	unique := map[string]bool{}
+	for _, raw := range paths {
+		absolute, err := filepath.Abs(expandPath(raw))
+		if err != nil {
+			continue
+		}
+		if info, err := os.Stat(absolute); err == nil && info.IsDir() {
+			unique[filepath.Clean(absolute)] = true
+		}
+	}
+	ordered := make([]string, 0, len(unique))
+	for path := range unique {
+		ordered = append(ordered, path)
+	}
+	sort.SliceStable(ordered, func(i, j int) bool {
+		leftDepth := strings.Count(ordered[i], string(filepath.Separator))
+		rightDepth := strings.Count(ordered[j], string(filepath.Separator))
+		if leftDepth == rightDepth {
+			return ordered[i] < ordered[j]
+		}
+		return leftDepth < rightDepth
+	})
+	selected := make([]string, 0, len(ordered))
+	for _, candidate := range ordered {
+		nested := false
+		for _, parent := range selected {
+			if strings.HasPrefix(candidate, parent+string(filepath.Separator)) {
+				nested = true
+				break
+			}
+		}
+		if !nested {
+			selected = append(selected, candidate)
+		}
+	}
+	sort.Strings(selected)
+	return selected
+}
+
+// mssDefaultTriageStatePath returns the per-user baseline location.
+//
+// @purpose Keep triage state outside scanned cache roots and project worktrees.
+// @consumer runTriage flag defaults.
+// @returns Absolute default baseline path.
+func mssDefaultTriageStatePath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".local", "state", "mac-storage-scout", "triage-v1.json")
 }
 
 // runScan executes scan command flow.

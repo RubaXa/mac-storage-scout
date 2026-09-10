@@ -34,6 +34,7 @@ Continue work autonomously with deterministic behavior, consistent reporting, an
   - `/private/var/vm`
   - `/private/var/folders`
 - `audit` defaults to `/System/Volumes/Data`, uses allocated bytes, stays on one filesystem, and reconciles readable files against `statfs` occupancy.
+- `triage` defaults to fast high-churn roots, stores a compact baseline, reports path deltas/age/process evidence, and uses `--broad` for slower app/project coverage.
 
 ## Safety Policy
 - Never delete without `--dry-run` check first.
@@ -66,6 +67,9 @@ go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
 # whole-volume reconciliation
 ./bin/mac-storage-scout audit --threshold 5GB --top 10 --no-progress
+
+# recurring loss diagnosis (first run establishes baseline)
+./bin/mac-storage-scout triage --threshold 500MB --top 20
 
 # targeted scan
 ./bin/mac-storage-scout scan --threshold 500MB --top 5 "$HOME/Library/Application Support"
