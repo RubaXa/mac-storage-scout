@@ -1,0 +1,33 @@
+TSK-10 runtime proof
+captured_utc: 2026-09-04T12:47:00Z
+
+command:
+  ./bin/mac-storage-scout audit --volume /System/Volumes/Data --threshold 20GB --top 10 --plain --no-progress
+
+volume balance:
+  capacity: 460GB
+  occupied: 450GB
+  available: 10.3GB
+  accounted-by-readable-files: 395GB (87.7%)
+  unaccounted: 55.4GB
+  growth-during-scan: +4.03GB
+  scan-errors: 588
+
+largest readable roots:
+  /System/Volumes/Data/Users: 300GB
+  /System/Volumes/Data/Applications: 49.4GB
+  /System/Volumes/Data/private: 28.2GB
+  /System/Volumes/Data/private/tmp: 18.2GB
+
+dynamic-growth follow-up:
+  /private/tmp measured 18.7GB immediately after the audit.
+  Repeated gen-chain*/sdd-flow-eval-* fixtures contain approximately 0.5GB node_modules trees.
+  Active process PID 47658 ran node --import tsx .../gennady/.../ai/flow-eval/cli.ts with
+  --directory /private/tmp/gen-chain15a-root.jNWMSx.
+  Its parent shell creates sequential /private/tmp/gen-chain<tag>-root.XXXXXX directories.
+  Latest observed directory timestamp: 2026-09-04 15:44:29 +03:00.
+
+interpretation:
+  The audit exposed both the static readable allocation and 4.03GB of live growth during traversal.
+  The immediate path drill-down attributed the active growth to temporary SDD flow-eval fixtures.
+  No files were deleted and no process was terminated during this proof.

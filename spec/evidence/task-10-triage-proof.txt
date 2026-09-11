@@ -1,0 +1,53 @@
+mac-storage-scout TSK-10 triage runtime proof
+captured: 2026-09-10 Europe/Moscow
+
+Targeted first run
+command:
+  ./bin/mac-storage-scout triage --state /private/tmp/mss-triage-smoke-20260910.json --threshold 500MB --top 15 ~/.gennady ~/.local/share/opencode /private/tmp
+result:
+  exit=0 elapsed=15.99s
+  available=27.5GB
+  ~/.local/share/opencode size=11.8GB status=active
+  /private/tmp size=7.23GB status=active
+  /private/tmp/claude-503 size=6.79GB status=inspect owner=inactive
+  ~/.local/share/opencode/snapshot size=1.39GB old>7d=1.07GB status=review
+  baseline=updated
+
+Targeted baseline comparison
+command:
+  ./bin/mac-storage-scout triage --state /private/tmp/mss-triage-smoke-20260910.json --no-save --threshold 500MB --top 15 ~/.gennady ~/.local/share/opencode /private/tmp
+result:
+  exit=0 elapsed=17.3s
+  volume-growth=+3.26MB
+  /private/tmp delta=+48.0KB
+  baseline=read-only
+
+Fast default performance
+before:
+  sequential broad discovery was interrupted after 1:33.58
+after:
+  bounded parallel fast-default completed in 12.03s without lsof
+  full default with lsof completed in 19.01s
+
+Live safety evidence
+command:
+  ./bin/mac-storage-scout triage --state /private/tmp/mss-triage-default-live-20260910.json --no-save --threshold 5GB --top 12
+key output:
+  ~/.npm/_cacache size=13.7GB old>7d=9.44GB status=safe owner=inactive
+  ~/.local/share/opencode size=11.8GB status=active owner=OpenCode Helper(...)
+  ~/.codex size=13.2GB status=active
+  /System/Volumes/Update size=13.0GB status=inspect owner=inactive
+  /private/tmp size=7.25GB status=active
+
+Safety notes:
+  - triage performed no deletions
+  - process probe failure/disable cannot produce safe classification
+  - active and inspect paths are excluded from candidates
+  - candidate parent/child paths are de-duplicated
+
+Verification:
+  go test -count=1 ./...  PASS
+  go test -race ./...     PASS
+  go build                PASS
+  contract-lint           scanned entities: 134; violations: 0
+  git diff --check        PASS

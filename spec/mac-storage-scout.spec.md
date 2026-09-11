@@ -17,6 +17,12 @@ go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
   --top 5 \
   --profile macos-core
 
+# Reconcile complete writable-volume occupancy with readable allocated files
+./bin/mac-storage-scout audit --threshold 5GB --top 10 --no-progress
+
+# Diagnose recurring loss with a persistent high-churn baseline
+./bin/mac-storage-scout triage --threshold 500MB --top 20
+
 # Same scan using allocated blocks (inode-reported)
 ./bin/mac-storage-scout scan \
   --threshold 500MB \
@@ -93,6 +99,7 @@ Main flow:
 - **Trade-offs:**
   - Нет полной APFS-атрибуции clone/snapshot space по путям в v1 (это ограничение syscall-level наблюдаемости).
   - Выбран streaming aggregation вместо полной materialization дерева файлов для скорости и памяти.
+  - `triage` defaults to common volatile roots and bounded root-level parallelism; `--broad` is explicit because app/project/container traversal is materially slower.
 - **YAGNI & Anti-Overengineering Decisions:**
   - Нет GUI, нет daemon mode, нет background indexer в v1.
   - Нет plug-in system и удаленных exporters.
@@ -101,6 +108,7 @@ Main flow:
   - Канонический источник данных: локальная FS через `os.ReadDir`/`lstat`/`stat`.
   - Инструмент не читает содержимое файлов, только metadata.
   - Симлинки по умолчанию не следуются.
+  - Triage baseline stores only path totals, volume occupancy, version, and capture time; file contents are never persisted.
 - **Runtime Fidelity & Deferred Scope:**
   - Real runtime integration: реальный обход live filesystem.
   - Simulation/test seam: синтетические test fixtures для unit/integration тестов.
@@ -127,7 +135,7 @@ Main flow:
   - `spec/mac-storage-scout.macos-performance.reference.md`
   - `spec/mac-storage-scout.output-format.source-of-truth.md`
 - **Verification Surface:** `runtime-hook-required`
-- **Deferred Runtime Scope:** snapshot/purgeable attribution by path.
+- **Deferred Runtime Scope:** exact snapshot/purgeable attribution by path; volume-level remainder is explicit in `audit`.
 - **Contract (DbC):**
   - Preconditions:
     - At least one root path exists and is readable or partially readable.
@@ -285,13 +293,15 @@ mac-storage-scout/
 │     └─ adapters/
 │        ├─ fs/
 │        │  ├─ mss_go_fs_walker_adapter.go
-│        │  └─ mss_sys_stat_adapter.go
+│        │  ├─ mss_sys_stat_adapter.go
+│        │  └─ mss_statfs_volume_usage_adapter.go
 │        ├─ aggregate/
 │        │  └─ mss_tree_aggregator_adapter.go
 │        ├─ progress/
 │        │  └─ mss_ansi_progress_adapter.go
 │        └─ report/
-│           └─ mss_tree_text_report_adapter.go
+│           ├─ mss_tree_text_report_adapter.go
+│           └─ mss_volume_audit_text_report_adapter.go
 ├─ spec/
 │  ├─ mac-storage-scout.spec.md
 │  ├─ mac-storage-scout.macos-performance.reference.md
@@ -305,6 +315,7 @@ mac-storage-scout/
 **File Mapping:**
 - `cmd/mac-storage-scout/main.go`: CLI entrypoint, flags parsing, wire-up of adapters.
 - `internal/mss/app/mss_scan_orchestrator.go`: orchestration flow and lifecycle.
+- `internal/mss/app/mss_volume_audit_orchestrator.go`: reconciles readable allocations with mounted-volume occupancy.
 - `internal/mss/ports/*.go`: strict contracts for scanner/aggregator/progress/report.
 - `internal/mss/adapters/fs/*.go`: runtime filesystem integration.
 - `internal/mss/adapters/aggregate/*.go`: threshold/other/top-5 aggregation logic.
@@ -327,6 +338,7 @@ TSK-01 (CLI scaffold)
                       │    └─ TSK-07 (rename to mac-storage-scout)
                       │         └─ TSK-08 (master sync protocol)
                       │              └─ TSK-09 (perf benchmark suite)
+                      │                   └─ TSK-10 (whole-volume audit)
 ```
 
 ### DAG Update Policy
@@ -357,6 +369,10 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - implemented_in: `TSK-08`
 - D-009: Branch context check (checkpoint 0) — agent must run `git branch --show-current` before any task and ask the user if not on `master`; performance benchmark suite establishes measured baseline and optimization candidate matrix for the walker engine.
   - implemented_in: `TSK-09`
+- D-010: A whole-volume investigation must reconcile `statfs` occupancy with a one-filesystem allocated-size scan and explicitly report unaccounted bytes, APFS allocation overcount, scan-time growth, and access errors.
+  - implemented_in: `TSK-10`
+- D-011: Recurring disk incidents use `triage`: fast generic volatile roots, two-level allocated-size detail, seven-day age buckets, bounded process attribution, and a persistent path-total baseline. Only inactive stale cache/log/temp paths with successful process evidence may be classified `safe`.
+  - implemented_in: `TSK-10`
 
 ### Invalid / Reverted Decisions
 - R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.
@@ -400,6 +416,8 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - `~/Library/Application Support`
   - `/private/var/vm`
   - `/private/var/folders`
+- `triage` defaults to common package/agent/cache/temp/VM/update roots, compares against `~/.local/state/mac-storage-scout/triage-v1.json`, and supports `--broad` or explicit roots.
+- Triage reports material growth and shrinkage separately from current large hotspots and never marks paths safe when process attribution failed or was disabled.
 - Default size mode is `logical`; `--size-mode allocated` is supported and labeled as estimate.
 - Tool shows live progress in TTY and completes without abort on common permission errors.
 - Tool compiles to a single binary via `go build` and has no required runtime dependencies.

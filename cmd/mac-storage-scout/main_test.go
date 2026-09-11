@@ -72,3 +72,10 @@ func TestGuardDeletePathAllowsRegularPath(t *testing.T) {
 		t.Errorf("guardDeletePath(%q) error = %v, want nil", target, err)
 	}
 }
+
+func TestMssDefaultAuditVolumeReturnsExistingPath(t *testing.T) {
+	volume := mssDefaultAuditVolume()
+	if _, err := os.Stat(volume); err != nil {
+		t.Errorf("mssDefaultAuditVolume() = %q, stat error = %v", volume, err)
+	}
+}

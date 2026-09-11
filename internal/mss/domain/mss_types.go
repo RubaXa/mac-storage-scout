@@ -45,6 +45,98 @@ type MssCounters struct {
 	StartedAt    time.Time
 }
 
+// MssVolumeUsage describes capacity and availability reported by the mounted filesystem.
+//
+// @purpose Carry the authoritative volume-level baseline used for scan reconciliation.
+// @consumer internal/mss/app/mss_volume_audit_orchestrator.go
+type MssVolumeUsage struct {
+	Path           string
+	CapacityBytes  int64
+	AvailableBytes int64
+	OccupiedBytes  int64
+}
+
+// MssVolumeAudit reconciles readable file allocations with volume-level occupancy.
+//
+// @purpose Make unexplained disk usage explicit instead of silently omitting it.
+// @consumer internal/mss/adapters/report/mss_volume_audit_text_report_adapter.go
+type MssVolumeAudit struct {
+	ScanRoot         string
+	Usage            MssVolumeUsage
+	AccountedBytes   int64
+	UnaccountedBytes int64
+	OvercountBytes   int64
+	GrowthDuringScan int64
+	Counters         MssCounters
+	Roots            []*MssNode
+}
+
+// MssTriageAgeBytes groups allocated bytes by last-modification age.
+//
+// @purpose Distinguish current churn from stale cleanup candidates.
+// @consumer internal/mss/adapters/report/mss_triage_text_report_adapter.go
+type MssTriageAgeBytes struct {
+	Today     int64 `json:"today"`
+	Week      int64 `json:"week"`
+	Older     int64 `json:"older"`
+	NoModTime int64 `json:"no_mod_time"`
+}
+
+// MssTriageHotspot describes one root or shallow descendant measured by triage.
+//
+// @purpose Carry comparable hotspot size, recency, activity, and safety evidence.
+// @consumer internal/mss/app/mss_triage_orchestrator.go
+type MssTriageHotspot struct {
+	Path       string            `json:"path"`
+	SizeBytes  int64             `json:"size_bytes"`
+	DeltaBytes int64             `json:"delta_bytes"`
+	Age        MssTriageAgeBytes `json:"age"`
+	Processes  []string          `json:"processes,omitempty"`
+	ProcessOK  bool              `json:"process_evidence"`
+	Safety     string            `json:"safety"`
+	Reason     string            `json:"reason"`
+}
+
+// MssTriageSnapshot is the compact persisted baseline used by later triage runs.
+//
+// @purpose Persist path totals without retaining file names or file contents.
+// @consumer internal/mss/adapters/state/mss_json_triage_state_adapter.go
+type MssTriageSnapshot struct {
+	Version       int              `json:"version"`
+	CapturedAt    time.Time        `json:"captured_at"`
+	OccupiedBytes int64            `json:"occupied_bytes"`
+	Roots         []string         `json:"roots"`
+	Paths         map[string]int64 `json:"paths"`
+}
+
+// MssTriageConfig defines one fast incident scan and baseline update.
+//
+// @purpose Carry triage policy without coupling it to CLI flag parsing.
+// @consumer internal/mss/app/mss_triage_orchestrator.go
+type MssTriageConfig struct {
+	Paths          []string
+	StatePath      string
+	ThresholdBytes int64
+	TopN           int
+	SaveBaseline   bool
+	Now            time.Time
+}
+
+// MssTriageReport is the outcome-first result of one incident triage run.
+//
+// @purpose Explain current hotspot occupancy and change since the previous baseline.
+// @consumer internal/mss/adapters/report/mss_triage_text_report_adapter.go
+type MssTriageReport struct {
+	CapturedAt    time.Time
+	PreviousAt    time.Time
+	Usage         MssVolumeUsage
+	GrowthBytes   int64
+	Hotspots      []MssTriageHotspot
+	Errors        int64
+	BaselinePath  string
+	BaselineSaved bool
+}
+
 // MssEntryKind describes filesystem entry kind.
 //
 // @purpose Classify entries for aggregation/reporting logic.
