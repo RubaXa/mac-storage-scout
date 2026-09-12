@@ -115,6 +115,7 @@ type MssTriageSnapshot struct {
 // @consumer internal/mss/app/mss_triage_orchestrator.go
 type MssTriageConfig struct {
 	Paths          []string
+	AnomalyPaths   []string
 	StatePath      string
 	ThresholdBytes int64
 	TopN           int
@@ -132,6 +133,7 @@ type MssTriageReport struct {
 	Usage         MssVolumeUsage
 	GrowthBytes   int64
 	Hotspots      []MssTriageHotspot
+	AnomalyScan   MssTriageAnomalyScan
 	Errors        int64
 	BaselinePath  string
 	BaselineSaved bool

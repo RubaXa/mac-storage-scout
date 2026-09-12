@@ -28,7 +28,8 @@
 | TSK-07 | CLI Rename to `mac-storage-scout` + Universal Agent Skill | TSK-05, TSK-06 | ✅ DONE |
 | TSK-08 | Master Sync Protocol + Post-Merge Return-To-Master Policy | TSK-07 | ✅ DONE |
 | TSK-09 | Performance Benchmark Suite & Engine Optimization Research | TSK-02, TSK-05, TSK-08 | ✅ DONE |
-| TSK-10 | Whole-Volume Audit + Repeatable Incident Triage | TSK-02, TSK-05, TSK-09 | 🔍 IN PR (#10) |
+| TSK-10 | Whole-Volume Audit + Repeatable Incident Triage | TSK-02, TSK-05, TSK-09 | ✅ DONE |
+| TSK-11 | Smart Metadata-First Anomaly Triage | TSK-10 | 🚧 IN PROGRESS |
 
 ## Execution Agent Rules
 - Start from lowest dependency depth.

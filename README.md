@@ -48,6 +48,7 @@ Big stuff is explicit. Small stuff is grouped. One glance — you know where the
 - 🧭 One consistent detail model: big items explicit, small items aggregated into `other` (with `top-N`, `rest`, `types`).
 - 🛡️ Safe cleanup flow — `--dry-run` first, `--yes` to commit, protected roots refused.
 - 📈 Repeatable incident triage — persistent baseline, path deltas, age buckets, and live-process evidence.
+- 🧠 Metadata-first anomaly preflight — flags runaway fanout, generated queues, repeated versions, stale dense folders, and giant direct files before a broad recursive scan.
 - 🧪 Built for real, noisy live systems — permission errors and races are tolerated, not fatal.
 - 🧵 Wide directory trees are drained by a scheduler-owned queue without worker deadlocks.
 - 🎨 Emoji mode for humans, `--plain` mode for pipes and CI.
@@ -65,6 +66,9 @@ go build -o ./bin/mac-storage-scout ./cmd/mac-storage-scout
 
 # diagnose fast-changing agent/cache/temp areas and update a persistent baseline
 ./bin/mac-storage-scout triage --threshold 500MB --top 20
+
+# tune the bounded broad metadata preflight without making the recursive scan broad
+./bin/mac-storage-scout triage --anomaly-budget 5s --anomaly-max-dirs 20000
 
 # include slower app data, containers, projects, and downloads
 ./bin/mac-storage-scout triage --broad --threshold 1GB --top 30
@@ -96,15 +100,17 @@ For each folder section:
 - Each `other` always uses the same shape: `top-N`, `rest`, `types`.
 
 ## 🧰 Standard Operator Workflow
-1. Run `triage` first when free space is falling. The first run records a compact baseline; later runs show growth and shrinkage automatically.
-2. Use `triage --broad` when the fast high-churn roots do not explain the loss.
+1. Run `triage` first when free space is falling. Its bounded metadata preflight searches broad high-value roots and immediately streams structural anomalies; the first completed run also records a compact baseline.
+2. Let anomaly findings queue targeted size/age measurement. Use `triage --broad` only when those targeted findings and the normal fast roots still do not explain the loss.
 3. Run `audit` when path totals still do not reconcile with APFS volume occupancy.
 4. Review `safe`, `review`, `active`, and `inspect` evidence. `safe` is only emitted when process attribution succeeded and found no open files.
 5. Run `delete --dry-run` and then `delete --yes` after confirmation.
 
 `audit` uses allocated bytes, stays on one filesystem, and prints any gap between APFS volume occupancy and readable files as `unaccounted`; it never silently treats that gap as explained.
 
-`triage` scans common volatile macOS locations rather than the complete disk. It stores only path totals and capture time in `~/.local/state/mac-storage-scout/triage-v1.json`; it does not store file contents. Explicit positional paths replace the defaults, and `--no-save` preserves the existing baseline.
+`triage` recursively sizes common volatile macOS locations rather than the complete disk. Before that work, it performs metadata-only discovery across Applications, Application Support, projects, downloads, caches, and the user's macOS temp/cache container under explicit time/directory/depth/entry budgets. High-confidence product-independent findings are automatically measured in a separate targeted pass; weak directory-heavy stale signals remain visible without triggering an expensive recursive walk. It stores only path totals and capture time in `~/.local/state/mac-storage-scout/triage-v1.json`; it does not store file contents. Explicit positional paths replace both default scopes, and `--no-save` preserves the existing baseline.
+
+Delete summaries are verified after each removal. Failed or skipped targets make the command exit non-zero, and bytes that remain are excluded from `Reclaimed estimate`.
 
 ## 🧱 Project Docs (Spec + Evidence)
 - Main spec: `spec/mac-storage-scout.spec.md`

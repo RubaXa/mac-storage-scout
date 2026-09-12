@@ -9,10 +9,20 @@ import (
 	"time"
 )
 
-type triageTestCollector struct{ hotspots []domain.MssTriageHotspot }
+type triageTestCollector struct {
+	hotspots []domain.MssTriageHotspot
+	calls    [][]string
+}
 
-func (c *triageTestCollector) Collect(context.Context, []string, time.Time) ([]domain.MssTriageHotspot, int64, error) {
+func (c *triageTestCollector) Collect(_ context.Context, paths []string, _ time.Time) ([]domain.MssTriageHotspot, int64, error) {
+	c.calls = append(c.calls, append([]string(nil), paths...))
 	return append([]domain.MssTriageHotspot(nil), c.hotspots...), 0, nil
+}
+
+type triageTestAnomalies struct{ scan domain.MssTriageAnomalyScan }
+
+func (a *triageTestAnomalies) Detect(context.Context, []string, time.Time) (domain.MssTriageAnomalyScan, error) {
+	return a.scan, nil
 }
 
 type triageTestState struct {
@@ -81,6 +91,40 @@ func TestMssTriageOrchestratorIgnoresBaselineFromDifferentScope(t *testing.T) {
 	}
 	if !report.PreviousAt.IsZero() || report.Hotspots[0].DeltaBytes != 0 {
 		t.Errorf("Run() used mismatched baseline: %+v", report)
+	}
+}
+
+func TestMssTriageOrchestratorTargetsAnomaliesWithoutChangingBaselineScope(t *testing.T) {
+	now := time.Date(2026, 9, 12, 12, 0, 0, 0, time.UTC)
+	collector := &triageTestCollector{hotspots: []domain.MssTriageHotspot{
+		{Path: "/fast", SizeBytes: 10},
+		{Path: "/broad/suspicious", SizeBytes: 90, Age: domain.MssTriageAgeBytes{Older: 70}},
+	}}
+	state := &triageTestState{}
+	orchestrator := &MssTriageOrchestrator{
+		Collector: collector,
+		Anomalies: &triageTestAnomalies{scan: domain.MssTriageAnomalyScan{Findings: []domain.MssTriageAnomaly{
+			{Path: "/broad/suspicious", Kind: "extreme-fanout", Targeted: true},
+			{Path: "/fast/nested", Kind: "generated-queue", Targeted: true},
+			{Path: "/fast/deep/generated/queue", Kind: "generated-queue", Targeted: true},
+			{Path: "/broad/reported-only", Kind: "stale-dense", Targeted: false},
+		}}},
+		State: state,
+		Usage: &auditTestUsageProvider{results: []domain.MssVolumeUsage{{Path: "/", OccupiedBytes: 100}}},
+	}
+
+	report, err := orchestrator.Run(context.Background(), domain.MssTriageConfig{Paths: []string{"/fast"}, AnomalyPaths: []string{"/broad"}, StatePath: "/state", ThresholdBytes: 1, TopN: 5, SaveBaseline: true, Now: now})
+	if err != nil {
+		t.Fatalf("Run() error = %v, want nil", err)
+	}
+	if len(collector.calls) != 2 || len(collector.calls[0]) != 1 || collector.calls[0][0] != "/fast" || len(collector.calls[1]) != 2 || collector.calls[1][0] != "/broad/suspicious" || collector.calls[1][1] != "/fast/deep/generated/queue" {
+		t.Errorf("Run() collection calls = %v, want separate base and deep-targeted paths", collector.calls)
+	}
+	if len(state.saved.Roots) != 1 || state.saved.Roots[0] != "/fast" {
+		t.Errorf("Run() baseline roots = %v, want stable configured scope", state.saved.Roots)
+	}
+	if got := report.AnomalyScan.Findings[0]; got.SizeBytes != 90 || got.Age.Older != 70 {
+		t.Errorf("Run() measured anomaly = %+v, want targeted size and age", got)
 	}
 }
 

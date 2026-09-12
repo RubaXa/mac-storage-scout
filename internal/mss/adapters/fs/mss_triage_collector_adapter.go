@@ -23,7 +23,9 @@ import (
 // @consumer internal/mss/app/mss_triage_orchestrator.go
 // @implements {MssTriageCollectorPort} internal/mss/ports/mss_triage_ports.go
 // @invariant Symlinks are not followed and allocated bytes are counted once per configured root.
-type MssTriageCollectorAdapter struct{}
+type MssTriageCollectorAdapter struct {
+	OnRootComplete func(path string, elapsed time.Duration, err error)
+}
 
 // Collect measures configured roots and shallow descendants.
 //
@@ -58,6 +60,7 @@ func (a *MssTriageCollectorAdapter) Collect(ctx context.Context, roots []string,
 		wait.Add(1)
 		go func() {
 			defer wait.Done()
+			started := time.Now()
 			select {
 			case semaphore <- struct{}{}:
 				defer func() { <-semaphore }()
@@ -66,6 +69,9 @@ func (a *MssTriageCollectorAdapter) Collect(ctx context.Context, roots []string,
 				return
 			}
 			measured, errorsSeen, err := mssCollectTriageRoot(ctx, root, now)
+			if a.OnRootComplete != nil {
+				a.OnRootComplete(root, time.Since(started), err)
+			}
 			results <- rootResult{hotspots: measured, errors: errorsSeen, err: err}
 		}()
 	}

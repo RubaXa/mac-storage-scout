@@ -65,6 +65,11 @@ since-baseline: <time> | volume-growth: <signed-size>
 scan-errors: <count>
 baseline: <path> (updated|read-only)
 
+anomaly-preflight: dirs=<count> elapsed=<duration> coverage=<complete|budget-limited> errors=<count>
+anomalies:
+  [<severity>/<kind>] <path> <structural evidence>; size=<measured> old>7d=<measured>
+    next: <product-independent operator hint>
+
 changes:
   <path> delta=<signed-size> now=<size> old>7d=<size>
 
@@ -76,6 +81,8 @@ candidates:
 ```
 
 - `changes` is ordered by absolute delta so reclaimed paths remain visible.
+- `anomalies` is ordered by measured size when available, then severity and structural magnitude. It is derived from bounded metadata reads and explicitly labels incomplete budget-limited coverage.
+- High-confidence structural findings automatically queue a separate targeted size/age pass; weak directory-heavy stale findings remain report-only. Targeting never bypasses process or delete-safety policy.
 - `hotspots` is ordered by current allocated size.
 - `safe` requires successful process evidence, no open file below the path, a generic cache/log/temp classification, and bytes older than seven days.
 - `review` is used for generated or historical structures such as worktrees, snapshots, sessions, and `node_modules`.

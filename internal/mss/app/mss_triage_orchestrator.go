@@ -23,6 +23,7 @@ import (
 // @invariant A failed optional process probe never suppresses filesystem findings.
 type MssTriageOrchestrator struct {
 	Collector ports.MssTriageCollectorPort
+	Anomalies ports.MssTriageAnomalyDetectorPort
 	State     ports.MssTriageStatePort
 	Processes ports.MssProcessUsageProbePort
 	Usage     ports.MssVolumeUsageProviderPort
@@ -49,9 +50,36 @@ func (o *MssTriageOrchestrator) Run(ctx context.Context, cfg domain.MssTriageCon
 	if err != nil {
 		return domain.MssTriageReport{}, fmt.Errorf("[MssTriageOrchestrator.Run] measure volume: %w", err)
 	}
+	anomalyScan := domain.MssTriageAnomalyScan{}
+	if o.Anomalies != nil && len(cfg.AnomalyPaths) > 0 {
+		anomalyScan, err = o.Anomalies.Detect(ctx, cfg.AnomalyPaths, now)
+		if err != nil {
+			return domain.MssTriageReport{}, fmt.Errorf("[MssTriageOrchestrator.Run] detect anomalies: %w", err)
+		}
+	}
 	hotspots, errorCount, err := o.Collector.Collect(ctx, cfg.Paths, now)
 	if err != nil {
 		return domain.MssTriageReport{}, fmt.Errorf("[MssTriageOrchestrator.Run] collect hotspots: %w", err)
+	}
+	targetPaths := mssTriageTargetedPaths(cfg.Paths, anomalyScan.Findings)
+	if len(targetPaths) > 0 {
+		targeted, targetedErrors, targetErr := o.Collector.Collect(ctx, targetPaths, now)
+		if targetErr != nil {
+			return domain.MssTriageReport{}, fmt.Errorf("[MssTriageOrchestrator.Run] collect targeted anomalies: %w", targetErr)
+		}
+		errorCount += targetedErrors
+		hotspots = mssMergeTriageHotspots(hotspots, targeted)
+	}
+	errorCount += anomalyScan.Errors
+	measuredByPath := make(map[string]domain.MssTriageHotspot, len(hotspots))
+	for _, hotspot := range hotspots {
+		measuredByPath[hotspot.Path] = hotspot
+	}
+	for i := range anomalyScan.Findings {
+		if measured, ok := measuredByPath[anomalyScan.Findings[i].Path]; ok {
+			anomalyScan.Findings[i].SizeBytes = measured.SizeBytes
+			anomalyScan.Findings[i].Age = measured.Age
+		}
 	}
 
 	previous, loadErr := o.State.Load(cfg.StatePath)
@@ -112,6 +140,7 @@ func (o *MssTriageOrchestrator) Run(ctx context.Context, cfg domain.MssTriageCon
 		PreviousAt:   previousAt,
 		Usage:        usage,
 		Hotspots:     hotspots,
+		AnomalyScan:  anomalyScan,
 		Errors:       errorCount,
 		BaselinePath: cfg.StatePath,
 	}
@@ -130,6 +159,85 @@ func (o *MssTriageOrchestrator) Run(ctx context.Context, cfg domain.MssTriageCon
 		report.BaselineSaved = true
 	}
 	return report, nil
+}
+
+// mssTriageTargetedPaths selects precise anomaly drill-down roots for a separate recursive scan.
+//
+// @purpose Convert cheap broad signals into precise allocated-size and age measurements.
+// @consumer MssTriageOrchestrator.Run.
+// @param roots Stable configured baseline roots.
+// @param findings Metadata anomaly paths outside those roots.
+// @returns Deterministically ordered roots that do not overlap each other and are not already visible within two base levels.
+func mssTriageTargetedPaths(roots []string, findings []domain.MssTriageAnomaly) []string {
+	selected := make([]string, 0, len(findings))
+	appendIfDisjoint := func(candidate string) {
+		candidate = filepath.Clean(candidate)
+		covered := false
+		for _, existing := range selected {
+			if candidate == existing || strings.HasPrefix(candidate, existing+string(filepath.Separator)) || strings.HasPrefix(existing, candidate+string(filepath.Separator)) {
+				covered = true
+				break
+			}
+		}
+		if !covered {
+			selected = append(selected, candidate)
+		}
+	}
+	// Findings arrive severity-ranked, so a precise critical path wins over a later broad low-severity parent.
+	for _, finding := range findings {
+		if finding.Path != "" && finding.Targeted && !mssTriagePathVisibleFromRoots(finding.Path, roots) {
+			appendIfDisjoint(finding.Path)
+		}
+	}
+	sort.Strings(selected)
+	return selected
+}
+
+// mssTriagePathVisibleFromRoots checks whether shallow base aggregation already emits an exact path.
+//
+// @purpose Avoid redundant targeted scans for roots and their first two descendant levels.
+// @consumer mssTriageTargetedPaths.
+// @param path Anomaly path.
+// @param roots Base collection roots.
+// @returns True when base collection produces the exact anomaly hotspot.
+func mssTriagePathVisibleFromRoots(path string, roots []string) bool {
+	path = filepath.Clean(path)
+	for _, root := range roots {
+		root = filepath.Clean(root)
+		if path == root {
+			return true
+		}
+		relative, err := filepath.Rel(root, path)
+		if err != nil || relative == "." || strings.HasPrefix(relative, "..") {
+			continue
+		}
+		if len(strings.Split(relative, string(filepath.Separator))) <= 2 {
+			return true
+		}
+	}
+	return false
+}
+
+// mssMergeTriageHotspots combines base and targeted measurements by exact path.
+//
+// @purpose Add deep evidence without duplicate report nodes when a path is visible in both scans.
+// @consumer MssTriageOrchestrator.Run.
+// @param base Base-root hotspots.
+// @param targeted Exact anomaly-root hotspots.
+// @returns Deterministic de-duplicated hotspot slice.
+func mssMergeTriageHotspots(base, targeted []domain.MssTriageHotspot) []domain.MssTriageHotspot {
+	byPath := make(map[string]domain.MssTriageHotspot, len(base)+len(targeted))
+	for _, hotspot := range base {
+		byPath[hotspot.Path] = hotspot
+	}
+	for _, hotspot := range targeted {
+		byPath[hotspot.Path] = hotspot
+	}
+	merged := make([]domain.MssTriageHotspot, 0, len(byPath))
+	for _, hotspot := range byPath {
+		merged = append(merged, hotspot)
+	}
+	return merged
 }
 
 // mssValidateTriageConfig rejects incomplete runtime wiring before filesystem work.

@@ -100,6 +100,7 @@ Main flow:
   - Нет полной APFS-атрибуции clone/snapshot space по путям в v1 (это ограничение syscall-level наблюдаемости).
   - Выбран streaming aggregation вместо полной materialization дерева файлов для скорости и памяти.
   - `triage` defaults to common volatile roots and bounded root-level parallelism; `--broad` is explicit because app/project/container traversal is materially slower.
+  - `triage` always performs a bounded metadata-first preflight over broad high-value roots; only detected anomalies become extra recursive measurement roots.
 - **YAGNI & Anti-Overengineering Decisions:**
   - Нет GUI, нет daemon mode, нет background indexer в v1.
   - Нет plug-in system и удаленных exporters.
@@ -339,6 +340,7 @@ TSK-01 (CLI scaffold)
                       │         └─ TSK-08 (master sync protocol)
                       │              └─ TSK-09 (perf benchmark suite)
                       │                   └─ TSK-10 (whole-volume audit)
+                      │                        └─ TSK-11 (smart anomaly triage)
 ```
 
 ### DAG Update Policy
@@ -373,6 +375,8 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - implemented_in: `TSK-10`
 - D-011: Recurring disk incidents use `triage`: fast generic volatile roots, two-level allocated-size detail, seven-day age buckets, bounded process attribution, and a persistent path-total baseline. Only inactive stale cache/log/temp paths with successful process evidence may be classified `safe`.
   - implemented_in: `TSK-10`
+- D-012: Incident triage begins with a bounded product-independent metadata preflight. Structural fanout, generated queues, repeated versions, and stale dense directories become ranked evidence and targeted drill-down roots; delete totals count only bytes no longer present.
+  - implemented_in: `TSK-11`
 
 ### Invalid / Reverted Decisions
 - R-001: Separate global action log file as primary chronology (`spec/ACTION-LOG.md`) caused duplication and drift risk.
@@ -417,7 +421,9 @@ Purpose: store concise cross-task lessons here; keep detailed chronology inside 
   - `/private/var/vm`
   - `/private/var/folders`
 - `triage` defaults to common package/agent/cache/temp/VM/update roots, compares against `~/.local/state/mac-storage-scout/triage-v1.json`, and supports `--broad` or explicit roots.
+- Triage metadata preflight is product-independent, budget-bounded, streams early findings, and detects fanout, generated queues, repeated versions, stale dense directories, and giant direct files.
 - Triage reports material growth and shrinkage separately from current large hotspots and never marks paths safe when process attribution failed or was disabled.
+- Delete failures or skipped targets return non-zero and are excluded from the confirmed reclaimed estimate.
 - Default size mode is `logical`; `--size-mode allocated` is supported and labeled as estimate.
 - Tool shows live progress in TTY and completes without abort on common permission errors.
 - Tool compiles to a single binary via `go build` and has no required runtime dependencies.

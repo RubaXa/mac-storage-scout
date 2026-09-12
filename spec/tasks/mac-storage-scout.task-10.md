@@ -33,7 +33,7 @@
 ## 4. Execution Log (AI-to-AI)
 ## EXEC_LOG_META
 - task_id: TSK-10
-- status: in_pr
+- status: done
 - canonical_log: self (this task file)
 
 ## EXEC_TIMELINE
@@ -49,3 +49,4 @@
 - 2026-09-10T15:40:00Z: optimized default triage from an aborted 93.58s sequential broad scan to 12.03s using bounded root parallelism and fast-vs-broad scope separation.
 - 2026-09-10T15:46:00Z: live default triage completed in 19.01s with lsof evidence; identified inactive npm cache as safe while preserving active OpenCode, Codex, Library cache, and tmp paths.
 - 2026-09-10T15:50:00Z: added non-overlapping candidate policy, bounded process-owner rendering, atomic-state and safety tests; `go test -count=1 ./...`, `go test -race ./...`, build, contract-lint (`violations=0`), and `git diff --check` passed.
+- 2026-09-12T18:28:05Z: PR #10 was confirmed merged into `master`; task status synchronized to done before TSK-11 work began.
