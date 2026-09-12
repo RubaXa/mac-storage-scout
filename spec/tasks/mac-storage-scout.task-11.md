@@ -32,7 +32,7 @@
 ## 4. Execution Log (AI-to-AI)
 ## EXEC_LOG_META
 - task_id: TSK-11
-- status: in_progress
+- status: in_pr
 - canonical_log: self (this task file)
 
 ## EXEC_TIMELINE
@@ -43,3 +43,4 @@
 - 2026-09-12T18:37:06Z: a second live run converted a 105-second directory-heavy Containers drill-down into a report-only hint, completed recursive work in about 17 seconds, rediscovered 23 Yandex version directories generically, and surfaced multiple deep application cache fanout paths with exact targeted measurements.
 - 2026-09-12T18:40:38Z: delete dry-run/yes smoke confirmed 1.00MB candidate and 1.00MB reclaimed with `deleted=1 failed=0 skipped=0`; injected unit failures proved failed and partially removed targets cannot inflate the successful total.
 - 2026-09-12T18:40:38Z: `go test ./...`, `go test -count=1 ./...`, `go test -race ./...`, binary build, contract lint (`157` entities, `violations=0`), runtime profile scan, and `git diff --check` passed.
+- 2026-09-12T18:44:00Z: rebased on current `origin/master`, pushed `ai/smart-anomaly-triage`, and opened PR #11 into `master` with runtime and delete-safety evidence.

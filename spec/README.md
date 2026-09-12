@@ -29,7 +29,7 @@
 | TSK-08 | Master Sync Protocol + Post-Merge Return-To-Master Policy | TSK-07 | ✅ DONE |
 | TSK-09 | Performance Benchmark Suite & Engine Optimization Research | TSK-02, TSK-05, TSK-08 | ✅ DONE |
 | TSK-10 | Whole-Volume Audit + Repeatable Incident Triage | TSK-02, TSK-05, TSK-09 | ✅ DONE |
-| TSK-11 | Smart Metadata-First Anomaly Triage | TSK-10 | 🚧 IN PROGRESS |
+| TSK-11 | Smart Metadata-First Anomaly Triage | TSK-10 | 🔍 IN PR (#11) |
 
 ## Execution Agent Rules
 - Start from lowest dependency depth.
