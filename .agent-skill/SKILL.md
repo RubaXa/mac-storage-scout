@@ -48,7 +48,7 @@ For a sudden or recurring loss, run fast incident triage before a full audit:
 ```bash
 ./bin/mac-storage-scout triage --threshold 500MB --top 20
 ```
-The first run records a compact baseline. Later runs report path deltas, bytes older than seven days, and best-effort process ownership. Use `--broad` only when fast roots do not explain the loss; use explicit paths to focus a known area. Never treat `active` or `inspect` as safe deletion candidates.
+The command first runs a bounded metadata-only preflight across broad high-value roots. It immediately reports generalized structural anomalies (fanout, generated queues, repeated versions, stale dense folders, and giant direct files), then automatically measures high-confidence paths in a separate targeted allocated-size pass. Weak directory-heavy stale signals remain report-only to avoid runaway traversal. Later runs also report baseline deltas, bytes older than seven days, and best-effort process ownership. Use `--broad` only when fast roots plus targeted anomalies do not explain the loss; use explicit paths to focus a known area. Never treat `active` or `inspect` as safe deletion candidates.
 
 ## Safety Contract
 Always plan a delete first; only commit after the plan is reviewed.
@@ -66,10 +66,12 @@ Protected roots are refused even with `--yes`: `/`, `/System`, `/usr`, `/bin`, `
 ## Minimal Agent Workflow
 1. Build the binary from source (`go build ...`).
 2. Run `triage` for active loss; rerun it against the saved baseline to identify growth.
-3. Escalate to `triage --broad`, then `audit`, only when fast hotspots do not explain the discrepancy.
+3. Review streamed anomaly evidence and its automatic targeted drill-down; escalate to `triage --broad`, then `audit`, only when it does not explain the discrepancy.
 4. Propose cleanup paths with their age, activity, and safety evidence.
 5. Run `delete --dry-run` and surface the planned freed bytes.
 6. Run `delete --yes` only after explicit user confirmation.
+
+Treat `Reclaimed estimate` as successful only when `failed=0 skipped=0`; the command exits non-zero otherwise and excludes remaining bytes from that total.
 
 ## Worked Example (Depersonalized)
 ```bash

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	iFS "io/fs"
 	"mac-storage-scout/internal/mss/adapters/aggregate"
 	fsadapter "mac-storage-scout/internal/mss/adapters/fs"
@@ -57,7 +58,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout scan [--threshold 500MB] [--top 5] [--size-mode logical|allocated] [--profile macos-core] [--plain] [paths...]")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout audit [--volume /System/Volumes/Data] [--threshold 5GB] [--top 10] [--plain]")
-	fmt.Fprintln(os.Stderr, "  mac-storage-scout triage [--broad] [--state <path>] [--threshold 500MB] [--top 20] [--no-save] [paths...]")
+	fmt.Fprintln(os.Stderr, "  mac-storage-scout triage [--broad] [--anomaly-budget 5s] [--anomaly-max-dirs 20000] [--state <path>] [--threshold 500MB] [--top 20] [--no-save] [paths...]")
 	fmt.Fprintln(os.Stderr, "  mac-storage-scout delete [--dry-run] [--yes] <path> [path...]")
 }
 
@@ -74,6 +75,8 @@ func runTriage(args []string) {
 	noSave := triageCmd.Bool("no-save", false, "read baseline without updating it")
 	noProcesses := triageCmd.Bool("no-processes", false, "skip best-effort lsof attribution")
 	broad := triageCmd.Bool("broad", false, "also scan app data, containers, projects, and downloads")
+	anomalyBudget := triageCmd.Duration("anomaly-budget", 5*time.Second, "maximum metadata-first anomaly discovery time")
+	anomalyMaxDirs := triageCmd.Int("anomaly-max-dirs", 20000, "maximum directories inspected by anomaly preflight")
 	if err := triageCmd.Parse(args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
@@ -87,11 +90,18 @@ func runTriage(args []string) {
 		fmt.Fprintln(os.Stderr, "invalid --top:", err)
 		os.Exit(2)
 	}
+	if *anomalyBudget <= 0 || *anomalyMaxDirs < 1 {
+		fmt.Fprintln(os.Stderr, "triage: --anomaly-budget must be positive and --anomaly-max-dirs must be >= 1")
+		os.Exit(2)
+	}
 	paths := triageCmd.Args()
+	anomalyPaths := []string(nil)
 	if len(paths) == 0 {
 		paths = mssDefaultTriagePaths(*broad)
+		anomalyPaths = mssDefaultTriageAnomalyPaths()
 	} else {
 		paths = mssExistingNonOverlappingPaths(paths)
+		anomalyPaths = append([]string(nil), paths...)
 	}
 	if len(paths) == 0 {
 		fmt.Fprintln(os.Stderr, "triage: no existing paths to scan")
@@ -101,14 +111,37 @@ func runTriage(args []string) {
 	if !*noProcesses {
 		processProbe = &fsadapter.MssLsofProcessProbeAdapter{}
 	}
+	fmt.Fprintf(os.Stderr, "triage: metadata anomaly preflight (budget=%s, max-dirs=%d)\n", anomalyBudget.String(), *anomalyMaxDirs)
 	orchestrator := &app.MssTriageOrchestrator{
-		Collector: &fsadapter.MssTriageCollectorAdapter{},
+		Collector: &fsadapter.MssTriageCollectorAdapter{OnRootComplete: func(path string, elapsed time.Duration, err error) {
+			status := "done"
+			if err != nil {
+				status = "partial"
+			}
+			fmt.Fprintf(os.Stderr, "triage measured: %s elapsed=%s status=%s\n", path, elapsed.Round(time.Millisecond), status)
+		}},
+		Anomalies: &fsadapter.MssMetadataAnomalyDetectorAdapter{
+			Budget:  *anomalyBudget,
+			MaxDirs: *anomalyMaxDirs,
+			OnFinding: func(finding domain.MssTriageAnomaly) {
+				countPrefix := ""
+				if finding.EntryCountMin {
+					countPrefix = ">="
+				}
+				action := "reported for review"
+				if finding.Targeted {
+					action = "targeted measurement queued"
+				}
+				fmt.Fprintf(os.Stderr, "triage anomaly: [%s/%s] %s entries=%s%d dirs=%d; %s\n", finding.Severity, finding.Kind, finding.Path, countPrefix, finding.EntryCount, finding.DirectoryCount, action)
+			},
+		},
 		State:     &stateadapter.MssJSONTriageStateAdapter{},
 		Processes: processProbe,
 		Usage:     &fsadapter.MssStatfsVolumeUsageAdapter{},
 	}
 	cfg := domain.MssTriageConfig{
 		Paths:          paths,
+		AnomalyPaths:   anomalyPaths,
 		StatePath:      expandPath(*statePath),
 		ThresholdBytes: thresholdBytes,
 		TopN:           *top,
@@ -124,6 +157,23 @@ func runTriage(args []string) {
 		fmt.Fprintln(os.Stderr, "render failed:", err)
 		os.Exit(1)
 	}
+}
+
+// mssDefaultTriageAnomalyPaths returns broad metadata-only roots used even by fast triage.
+//
+// @purpose Find deeply nested structural anomalies without recursively sizing every broad root.
+// @consumer runTriage anomaly detector wiring.
+// @returns Existing, normalized, non-overlapping roots.
+func mssDefaultTriageAnomalyPaths() []string {
+	home, _ := os.UserHomeDir()
+	paths := mssDefaultTriagePaths(true)
+	paths = append(paths, "/Applications", filepath.Join(home, "Applications"))
+	tempRoot := filepath.Clean(os.TempDir())
+	tempContainer := filepath.Dir(tempRoot)
+	if filepath.Base(tempRoot) == "T" && tempContainer != string(filepath.Separator) {
+		paths = append(paths, tempContainer)
+	}
+	return mssExistingNonOverlappingPaths(paths)
 }
 
 // mssDefaultTriagePaths discovers common high-churn macOS paths without app-specific configuration.
@@ -416,44 +466,101 @@ func runDelete(args []string) {
 	}
 	// END_PARSE_DELETE_FLAGS
 
-	// START_EXECUTE_DELETE_PLAN
-	// invariant: protected paths are never deleted, and dry-run always reports candidate totals.
-	var total int64
+	summary := executeDeletePlan(os.Stdout, os.Stderr, targets, *dryRun, os.RemoveAll, measurePath)
+	if summary.Failed > 0 || summary.Skipped > 0 {
+		os.Exit(1)
+	}
+}
+
+// mssDeleteSummary separates planned, confirmed, failed, and skipped delete outcomes.
+//
+// @purpose Prevent candidate bytes from being mistaken for successfully reclaimed bytes.
+// @consumer executeDeletePlan.
+type mssDeleteSummary struct {
+	CandidateBytes int64
+	ReclaimedBytes int64
+	Deleted        int
+	Failed         int
+	Skipped        int
+}
+
+// executeDeletePlan applies guarded deletion and reports conservative before/after byte estimates.
+//
+// @purpose Keep failed or skipped targets out of the successful reclaimed total.
+// @consumer runDelete.
+// @pre Real deletion is authorized by the caller; remove and measure dependencies are non-nil.
+// @param out Standard result writer.
+// @param errOut Warning and failure writer.
+// @param targets Raw deletion targets.
+// @param dryRun Whether to plan without mutation.
+// @param remove Injected recursive removal operation.
+// @param measure Injected size measurement operation.
+// @returns Candidate and confirmed-reclamation summary.
+// @post Every failed removal is remeasured when possible and contributes only bytes no longer present.
+// @invariant Protected paths are never passed to remove.
+func executeDeletePlan(out, errOut io.Writer, targets []string, dryRun bool, remove func(string) error, measure func(string) (int64, error)) mssDeleteSummary {
+	summary := mssDeleteSummary{}
+	// START_EXECUTE_DELETE_PLAN_WITH_TRUTHFUL_TOTALS
 	for _, raw := range targets {
-		p := expandPath(raw)
-		ap, err := filepath.Abs(p)
+		ap, err := filepath.Abs(expandPath(raw))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "skip %s: %v\n", raw, err)
+			fmt.Fprintf(errOut, "skip %s: %v\n", raw, err)
+			summary.Skipped++
 			continue
 		}
 		if err := guardDeletePath(ap); err != nil {
-			fmt.Fprintf(os.Stderr, "skip %s: %v\n", ap, err)
+			fmt.Fprintf(errOut, "skip %s: %v\n", ap, err)
+			summary.Skipped++
 			continue
 		}
-		sz, err := measurePath(ap)
-		if err != nil && !errors.Is(err, iFS.ErrNotExist) {
-			fmt.Fprintf(os.Stderr, "warn: size estimate failed for %s: %v\n", ap, err)
+		before, measureErr := measure(ap)
+		if errors.Is(measureErr, iFS.ErrNotExist) {
+			fmt.Fprintf(errOut, "skip %s: path does not exist\n", ap)
+			summary.Skipped++
+			continue
 		}
-		total += sz
+		if measureErr != nil {
+			fmt.Fprintf(errOut, "warn: size estimate failed for %s: %v\n", ap, measureErr)
+			before = 0
+		}
+		summary.CandidateBytes += before
+		if dryRun {
+			fmt.Fprintf(out, "DRY-RUN delete %s (%s)\n", ap, domain.MssHumanBytes(before))
+			continue
+		}
 
-		if *dryRun {
-			fmt.Printf("DRY-RUN delete %s (%s)\n", ap, domain.MssHumanBytes(sz))
+		removeErr := remove(ap)
+		after, afterErr := measure(ap)
+		absent := errors.Is(afterErr, iFS.ErrNotExist)
+		if absent {
+			after = 0
+		}
+		reclaimed := int64(0)
+		if afterErr == nil || absent {
+			reclaimed = before - after
+			if reclaimed < 0 {
+				reclaimed = 0
+			}
+		}
+		summary.ReclaimedBytes += reclaimed
+		if removeErr != nil || !absent {
+			if removeErr == nil {
+				removeErr = fmt.Errorf("target still exists after removal")
+			}
+			fmt.Fprintf(errOut, "failed delete %s: %v; reclaimed estimate=%s\n", ap, removeErr, domain.MssHumanBytes(reclaimed))
+			summary.Failed++
 			continue
 		}
-
-		if err := os.RemoveAll(ap); err != nil {
-			fmt.Fprintf(os.Stderr, "failed delete %s: %v\n", ap, err)
-			continue
-		}
-		fmt.Printf("DELETED %s (%s)\n", ap, domain.MssHumanBytes(sz))
+		fmt.Fprintf(out, "DELETED %s (%s)\n", ap, domain.MssHumanBytes(reclaimed))
+		summary.Deleted++
 	}
-
-	if *dryRun {
-		fmt.Printf("DRY-RUN total candidate: %s\n", domain.MssHumanBytes(total))
+	if dryRun {
+		fmt.Fprintf(out, "DRY-RUN total candidate: %s; skipped=%d\n", domain.MssHumanBytes(summary.CandidateBytes), summary.Skipped)
 	} else {
-		fmt.Printf("Deleted total estimated: %s\n", domain.MssHumanBytes(total))
+		fmt.Fprintf(out, "Reclaimed estimate: %s; deleted=%d failed=%d skipped=%d\n", domain.MssHumanBytes(summary.ReclaimedBytes), summary.Deleted, summary.Failed, summary.Skipped)
 	}
-	// END_EXECUTE_DELETE_PLAN
+	// END_EXECUTE_DELETE_PLAN_WITH_TRUTHFUL_TOTALS
+	return summary
 }
 
 // guardDeletePath enforces protected-path policy.

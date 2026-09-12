@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 // MssTriageTextReportAdapter renders comparable hotspot and cleanup evidence.
@@ -42,6 +43,44 @@ func (a *MssTriageTextReportAdapter) Render(w io.Writer, triage domain.MssTriage
 	}
 	fmt.Fprintf(w, "scan-errors: %d\n", triage.Errors)
 	fmt.Fprintf(w, "baseline: %s (%s)\n\n", triage.BaselinePath, map[bool]string{true: "updated", false: "read-only"}[triage.BaselineSaved])
+
+	if triage.AnomalyScan.InspectedDirs > 0 || len(triage.AnomalyScan.Findings) > 0 {
+		coverage := "complete"
+		if triage.AnomalyScan.Truncated {
+			coverage = "budget-limited"
+		}
+		fmt.Fprintf(w, "anomaly-preflight: dirs=%d elapsed=%s coverage=%s errors=%d\n", triage.AnomalyScan.InspectedDirs, triage.AnomalyScan.Elapsed.Round(time.Millisecond), coverage, triage.AnomalyScan.Errors)
+		fmt.Fprintln(w, "anomalies:")
+		if len(triage.AnomalyScan.Findings) == 0 {
+			fmt.Fprintln(w, "  none detected within metadata budget")
+		}
+		findings := append([]domain.MssTriageAnomaly(nil), triage.AnomalyScan.Findings...)
+		sort.SliceStable(findings, func(i, j int) bool {
+			if findings[i].SizeBytes != findings[j].SizeBytes {
+				return findings[i].SizeBytes > findings[j].SizeBytes
+			}
+			left, right := mssReportAnomalySeverityRank(findings[i].Severity), mssReportAnomalySeverityRank(findings[j].Severity)
+			if left != right {
+				return left < right
+			}
+			return findings[i].EntryCount > findings[j].EntryCount
+		})
+		for i, finding := range findings {
+			if i == cfg.TopN {
+				break
+			}
+			measured := "reported without auto-measurement"
+			if finding.Targeted {
+				measured = "pending targeted measurement"
+			}
+			if finding.SizeBytes > 0 {
+				measured = fmt.Sprintf("size=%s old>7d=%s", domain.MssHumanBytes(finding.SizeBytes), domain.MssHumanBytes(finding.Age.Older))
+			}
+			fmt.Fprintf(w, "  [%s/%s] %s  %s; %s\n", finding.Severity, finding.Kind, mssTildePath(finding.Path), finding.Evidence, measured)
+			fmt.Fprintf(w, "    next: %s\n", finding.Hint)
+		}
+		fmt.Fprintln(w)
+	}
 
 	if !triage.PreviousAt.IsZero() {
 		fmt.Fprintln(w, "changes:")
@@ -101,6 +140,23 @@ func (a *MssTriageTextReportAdapter) Render(w io.Writer, triage domain.MssTriage
 		fmt.Fprintln(w, "  none; inspect large inactive hotspots before deletion")
 	}
 	return nil
+}
+
+// mssReportAnomalySeverityRank maps metadata severity to deterministic report order.
+//
+// @purpose Break equal-size anomaly ties with the strongest structural evidence first.
+// @consumer MssTriageTextReportAdapter.Render.
+// @param severity Finding severity label.
+// @returns Ascending sort rank.
+func mssReportAnomalySeverityRank(severity string) int {
+	switch severity {
+	case "critical":
+		return 0
+	case "high":
+		return 1
+	default:
+		return 2
+	}
 }
 
 // mssTriagePathOverlaps detects parent/child overlap with selected candidates.

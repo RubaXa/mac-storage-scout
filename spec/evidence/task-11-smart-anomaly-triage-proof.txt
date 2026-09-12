@@ -1,0 +1,38 @@
+TSK-11 smart anomaly triage runtime proof
+captured: 2026-09-12 Europe/Moscow
+
+Command:
+  ./bin/mac-storage-scout triage --no-save --no-processes --threshold 1GB --top 20 --anomaly-budget 5s --anomaly-max-dirs 20000
+
+Early findings streamed before recursive measurement completed:
+  [critical/extreme-fanout] /var/folders/.../T entries>=4096
+  [high/extreme-fanout] ~/.yarn/berry/cache entries=1381
+  [medium/stale-dense] ~/Downloads entries=952
+  [medium/generated-queue] ~/Library/Application Support/VK WorkSpace/logs entries=291
+
+Bounded preflight result:
+  dirs=8687 elapsed=5.002s coverage=budget-limited errors=69
+
+Automatic targeted measurements:
+  ~/Downloads size=21.9GB old>7d=21.3GB
+  ~/Downloads/Fashion Business size=10.4GB old>7d=10.4GB
+  ~/Downloads/WhereTheHeartIs.app size=7.49GB old>7d=7.49GB
+  ~/Library/Application Support/VK WorkSpace/logs size=3.70GB
+  /var/folders/.../T size=1.24GB
+
+Interpretation:
+  The preflight found broad-root anomalies without a product-specific Yandex, Codex, VK, or browser rule. It surfaced evidence immediately, made budget-limited coverage explicit, and converted suspicious paths into exact allocated-size/age drill-downs.
+
+Refined live run after latency and traversal-priority feedback:
+  anomaly-preflight: dirs=8474 elapsed=5.008s coverage=budget-limited
+  [high/version-accumulation] /Applications/Yandex.app/Contents/Versions entries=23
+  [critical/large-direct-files] ~/.local/share/opencode sampled=6.15GB measured=7.87GB
+  [high/extreme-fanout] ~/Library/Application Support/VK WorkSpace/0001/content.cache measured=2.46GB
+  [critical/extreme-fanout] ~/Library/Application Support/Claude/Cache/Cache_Data measured=636MB
+  [medium/stale-dense] ~/Library/Containers entries=511 dirs=511; reported for review
+
+Latency proof:
+  The prior automatic Containers traversal took 1m44.995s. After directory-ratio gating it was no longer auto-scanned; the refined run completed its recursive phases in about 17 seconds while retaining the warning. Per-root completion lines remained visible throughout.
+
+Additional mandatory profile scan evidence:
+  The standard macos-core scan exposed newly recreated Chrome code-sign clone trees below the user's /var/folders/.../C container. Their logical bundle totals were about 7.6GB, while smart triage measured the whole C container at about 799MB allocated, preserving the logical-vs-allocated distinction instead of overstating reclaimed physical disk space.

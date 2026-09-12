@@ -5,6 +5,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -17,6 +18,25 @@ func TestMssExistingNonOverlappingPaths(t *testing.T) {
 	got := mssExistingNonOverlappingPaths([]string{child, root, root, filepath.Join(root, "missing")})
 	if len(got) != 1 || got[0] != root {
 		t.Errorf("mssExistingNonOverlappingPaths() = %v, want [%s]", got, root)
+	}
+}
+
+func TestMssDefaultTriageAnomalyPathsCoverUserTempContainer(t *testing.T) {
+	paths := mssDefaultTriageAnomalyPaths()
+	tempRoot := filepath.Clean(os.TempDir())
+	want := tempRoot
+	if filepath.Base(tempRoot) == "T" {
+		want = filepath.Dir(tempRoot)
+	}
+	covered := false
+	for _, path := range paths {
+		if want == path || strings.HasPrefix(want, path+string(filepath.Separator)) {
+			covered = true
+			break
+		}
+	}
+	if !covered {
+		t.Errorf("mssDefaultTriageAnomalyPaths() = %v, want coverage for %s", paths, want)
 	}
 }
 
